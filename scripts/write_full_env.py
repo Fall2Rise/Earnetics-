@@ -1,0 +1,121 @@
+
+env_content = r"""# Fallat CrewAI environment configuration example
+
+APP_ENV=production
+LOG_LEVEL=INFO
+FALLAT_API_TOKEN=Wpz3TNMJgBQ8D8Zh0e2XSwA0IxhUaf9vHJexk-scI1I
+
+# Database
+BUSINESS_DB_PATH=business_database.db
+AUDIT_LOG_DB=audit_log.db
+VECTOR_MEMORY_DB=vector_memory.db
+APPROVAL_QUEUE_DB=approval_queue.db
+WORKFLOW_SCHEDULER_DB=workflow_scheduler.db
+
+# Secrets & credential vault
+CREDENTIAL_VAULT_KEY=9IaBvRlNIFZ_Fn1wfVm0EZLwSIAsSzOnyP_b99R2o6s=
+CREDENTIAL_VAULT_DB=credential_vault.db
+PRIME_DIRECTIVE_SECRET=mZk6BM4gxzAoMbLPLmdTDwHyXDVnhbGbrUnYiKu8Ea0A61azYOgLS7bEDLlP1X-d
+PRIME_DIRECTIVE_MAC=ba34f2b6b75667f429b9f460c632a1a5cd86376aa4706404c43fe258d4ee26ee
+
+# Autonomy controls
+AUTONOMY_SCHEDULER_ENABLED=true
+AUTONOMY_WORKER_ENABLED=true
+AUTONOMY_WORKER_INTERVAL=15
+AUTONOMY_WORKER_RETRY_MINUTES=5
+
+# Stripe (required for live payments)
+STRIPE_SECRET_KEY=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
+STRIPE_PUBLISHABLE_KEY=pk_live_51SD78EK8DLakRAbahVdJvQjxA8KMcmWX8aBO89GmOLoj0pCqeTlihVRQWXOjJlJf6mmnsv8xw0KANKGoaBrWQNxB00gqoZhKjA
+STRIPE_WEBHOOK_SECRET=whsec_rsEHew5mo7Jc2llKA4IFnld7LY1YDpfO
+
+# Email / SMTP (required for outbound campaigns)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_EMAIL=founder@selfbuilddigital.com
+SMTP_PASSWORD=outv rlms extq mhlc
+
+# Local LLM provider
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3
+OLLAMA_HOST=http://localhost:11434
+
+# Optional integrations
+TWITTER_API_KEY=
+TWITTER_API_SECRET=
+TWITTER_ACCESS_TOKEN=
+TWITTER_ACCESS_SECRET=
+SHOPIFY_STORE_URL=
+SHOPIFY_ADMIN_API_TOKEN=
+AFFILIATE_API_BASE_URL=
+AFFILIATE_API_KEY=
+
+# Social media APIs (fill whichever you plan to use)
+YOUTUBE_API_KEY=
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+PINTEREST_ACCESS_TOKEN=
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+
+# Email, messaging, and marketing platforms
+MAILCHIMP_API_KEY=
+MAILCHIMP_SERVER_PREFIX=
+CONVERTKIT_API_KEY=
+CONVERTKIT_SECRET=
+SENDGRID_API_KEY=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+SYSTEME_API_KEY=
+SLACK_BOT_TOKEN=
+DISCORD_WEBHOOK_URL=
+
+# Commerce & fulfillment
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+ETSY_API_KEY=
+ETSY_API_SECRET=
+GUMROAD_API_TOKEN=
+PRINTFUL_API_KEY=
+PRINTIFY_API_TOKEN=
+
+# Affiliate networks
+CLICKBANK_API_KEY=
+DIGISTORE_API_KEY=
+CJ_DEVELOPER_KEY=
+AMAZON_ASSOCIATES_TAG=
+AMAZON_ASSOCIATES_SECRET=
+
+# Analytics & ads
+GOOGLE_ANALYTICS_PROPERTY_ID=
+GOOGLE_SERVICE_ACCOUNT_JSON=
+SEARCH_CONSOLE_SITE_URL=
+META_ADS_API_TOKEN=
+
+# Real-estate & finance (optional)
+ZILLOW_API_KEY=
+PROPSTREAM_API_KEY=
+BINANCE_API_KEY=
+BINANCE_API_SECRET=
+
+# Knowledge & workflow tools
+NOTION_API_KEY=
+AIRTABLE_API_KEY=
+
+# Frontend base URL (used in generated links)
+SITE_BASE_URL=https://www.fallat.digital
+"""
+
+import os
+
+# Write to .env in the parent directory (root)
+with open(os.path.join(os.path.dirname(__file__), '..', '.env'), 'w') as f:
+    f.write(env_content)
+
+print("✅ .env file successfully overwritten with provided config.")

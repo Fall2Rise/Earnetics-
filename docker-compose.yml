@@ -1,0 +1,58 @@
+# FALLAT CREWAI DIGITAL AI CORPORATION - DOCKER COMPOSE
+# Production-ready containerized deployment
+
+version: '3.8'
+
+services:
+  fallat-ai-corporation:
+    build: .
+    container_name: fallat-ai-corporation
+    ports:
+      - "8000:8080"
+    environment:
+      - BUSINESS_DB_PATH=/data/business_database.db
+      - AUDIT_LOG_DB=/data/audit_log.db
+      - VECTOR_MEMORY_DB=/data/vector_memory.db
+      - APPROVAL_QUEUE_DB=/data/approval_queue.db
+      - WORKFLOW_SCHEDULER_DB=/data/workflow_scheduler.db
+      - CREDENTIAL_VAULT_DB=/data/credential_vault.db
+      - HOST=0.0.0.0
+      - PORT=8080
+      - PRODUCTION_MODE=true
+      - LOG_LEVEL=INFO
+      - AUTONOMY_SCHEDULER_ENABLED=true
+      - AUTONOMY_WORKER_ENABLED=true
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data  # Persistent database storage
+      - ./logs:/app/logs  # Persistent logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.fallat.service=ai-corporation"
+      - "com.fallat.version=1.0"
+      - "com.airevenue.description=AI Revenue Command Center - 17 Autonomous AI Agents"
+
+networks:
+  default:
+    name: fallat-network
+
+volumes:
+  corporate-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+  corporate-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs

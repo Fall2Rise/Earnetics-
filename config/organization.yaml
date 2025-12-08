@@ -1,0 +1,392 @@
+organization:
+  name: Earnetics Swarm
+  mission: >-
+    Autonomously design, build, deploy, test, and grow revenue-generating systems with minimal
+    human input while protecting the Fallat family brand and assets.
+  ceo:
+    id: ceo
+    name: Chief Executive Officer
+    pod: executive
+    role: >-
+      Sets global money goals, prioritizes products and plays, and coordinates pods to keep
+      Earnetics focused on autonomous revenue generation.
+    responsibilities:
+      - define_global_revenue_targets
+      - approve_new_strategic_plays
+      - allocate_focus_between_pods
+      - trigger_pivots_when_required
+    reports_to: null
+    manages:
+      - cpo
+      - cto
+      - cco
+      - research_head
+      - eng_lead
+      - qa_lead
+      - growth_head
+pods:
+  - id: executive
+    name: Executive & Strategy Pod
+    description: >-
+      Converts global revenue goals into concrete product, tech, and go-to-market decisions.
+  - id: research
+    name: Market Research Pod
+    description: >-
+      Provides market intelligence on niches, personas, competitors, and demand signals.
+  - id: engineering
+    name: Engineering Pod
+    description: >-
+      Designs, builds, and deploys the technical systems, automations, and infrastructure.
+  - id: qa
+    name: Quality Assurance Pod
+    description: >-
+      Validates every release by hunting bugs, edge cases, and performance regressions.
+  - id: growth
+    name: Growth & Revenue Pod
+    description: >-
+      Turns finished products into traffic, leads, customers, and revenue at scale.
+agents:
+  - id: cpo
+    name: Chief Product Officer
+    pod: executive
+    reports_to: ceo
+    manages: []
+    role: >-
+      Translates revenue targets into product roadmaps, funnels, and offers.
+    responsibilities:
+      - maintain_product_roadmap
+      - select_core_plays_for_execution
+      - define_feature_sets_for_each_play
+      - coordinate_with_research_and_engineering
+  - id: cto
+    name: Chief Technology Officer
+    pod: executive
+    reports_to: ceo
+    manages: []
+    role: >-
+      Decides tech stacks, architecture patterns, and core services for Earnetics.
+    responsibilities:
+      - select_core_tech_stack
+      - define_service_boundaries_and_apis
+      - approve_long_term_technical_direction
+      - coordinate_with_eng_lead_and_security_auditor
+  - id: cco
+    name: Chief Creative Officer
+    pod: executive
+    reports_to: ceo
+    manages: []
+    role: >-
+      Owns brand voice, visuals, and emotional tone of all public-facing assets.
+    responsibilities:
+      - define_brand_guidelines
+      - approve_landing_page_and_ad_creatives
+      - coordinate_with_copywriter_and_ad_designer
+  - id: research_head
+    name: Head of Research
+    pod: research
+    reports_to: ceo
+    manages:
+      - trend_hunter
+      - keyword_analyst
+      - competitor_spy
+      - persona_bot
+      - niche_validator
+    role: >-
+      Summarizes market intelligence into clear recommendations for the executive pod.
+    responsibilities:
+      - synthesize_research_reports
+      - recommend_best_niches_and_topics
+      - flag_dying_markets_and_risks
+  - id: trend_hunter
+    name: Trend Hunter
+    pod: research
+    reports_to: research_head
+    manages: []
+    role: >-
+      Scrapes news, social platforms, and APIs to find viral trends for offers and content.
+    responsibilities:
+      - scan_google_trends_twitter_reddit
+      - detect_emerging_topics
+      - produce_trend_lists_for_keyword_analyst
+  - id: keyword_analyst
+    name: Keyword Analyst
+    pod: research
+    reports_to: research_head
+    manages: []
+    role: >-
+      Uses SEO tools to find high-volume, low-competition search terms and hooks.
+    responsibilities:
+      - fetch_keyword_metrics_from_apis
+      - generate_keyword_clusters_for_content
+      - handoff_to_seo_specialist_and_copywriter
+  - id: competitor_spy
+    name: Competitor Spy
+    pod: research
+    reports_to: research_head
+    manages: []
+    role: >-
+      Profiles top competitors to capture pricing, feature sets, funnels, and ads.
+    responsibilities:
+      - map_competitor_offers_and_pricing
+      - capture_examples_of_ad_creatives_and_funnels
+      - identify_gaps_and_weaknesses
+  - id: persona_bot
+    name: User Persona Bot
+    pod: research
+    reports_to: research_head
+    manages: []
+    role: >-
+      Simulates target personas to test messaging, objections, and desires.
+    responsibilities:
+      - generate_persona_profiles
+      - run_message_tests
+      - report_likely_objections_and_desires
+  - id: niche_validator
+    name: Niche Validator
+    pod: research
+    reports_to: research_head
+    manages: []
+    role: >-
+      Calculates win probability per niche or play using trend and competitive data.
+    responsibilities:
+      - combine_trends_keywords_competitors
+      - score_niches_on_profitability_and_risk
+      - recommend_go_or_no_go_to_executives
+  - id: eng_lead
+    name: Lead Architect
+    pod: engineering
+    reports_to: ceo
+    manages:
+      - backend_dev
+      - frontend_dev
+      - db_engineer
+      - devops_engineer
+      - security_auditor
+      - code_reviewer
+    role: >-
+      Converts product requirements into architecture specs and detailed engineering tasks.
+    responsibilities:
+      - produce_architecture_specs
+      - maintain_system_diagrams
+      - break_features_into_tasks
+      - coordinate_with_cto_and_qa_lead
+  - id: backend_dev
+    name: Backend Developer
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Implements APIs, core business logic, schedulers, and data pipelines.
+    responsibilities:
+      - implement_business_logic
+      - integrate_third_party_apis
+      - write_unit_tests_for_core_functions
+  - id: frontend_dev
+    name: Frontend Developer
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Builds dashboards and interfaces for Earnetics products.
+    responsibilities:
+      - implement_web_ui_and_visualizations
+      - connect_frontend_to_backends
+      - support_data_visualization_for_metrics
+  - id: db_engineer
+    name: Database Engineer
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Designs and maintains relational and vector databases for plays, metrics, and logs.
+    responsibilities:
+      - design_schemas
+      - optimize_queries_and_indexes
+      - maintain_backup_and_migration_plans
+  - id: devops_engineer
+    name: DevOps Engineer
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Handles Dockerization, CI/CD pipelines, deployment scripts, and runtime environments.
+    responsibilities:
+      - write_dockerfiles_and_compose_configs
+      - configure_ci_cd_pipelines
+      - manage_environment_configs_and_scaling
+  - id: security_auditor
+    name: Security Auditor
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Reviews systems for vulnerabilities, secrets exposure, and misconfigurations before release.
+    responsibilities:
+      - run_security_checks
+      - scan_for_leaked_keys
+      - provide_fix_recommendations
+  - id: code_reviewer
+    name: Code Reviewer
+    pod: engineering
+    reports_to: eng_lead
+    manages: []
+    role: >-
+      Reviews code from all devs to reduce hallucinations and enforce standards.
+    responsibilities:
+      - enforce_code_style
+      - verify_logic_against_requirements
+      - coordinate_with_qa_on_test_coverage
+  - id: qa_lead
+    name: QA Lead
+    pod: qa
+    reports_to: ceo
+    manages:
+      - unit_tester
+      - ui_tester
+      - edge_case_monkey
+      - performance_analyst
+    role: >-
+      Owns the release quality bar and go/no-go decisions.
+    responsibilities:
+      - maintain_test_strategy
+      - approve_or_reject_releases
+      - coordinate_with_eng_and_growth
+  - id: unit_tester
+    name: Unit Tester
+    pod: qa
+    reports_to: qa_lead
+    manages: []
+    role: >-
+      Writes and maintains automated unit tests for backend and logic.
+    responsibilities:
+      - write_pytest_suites
+      - generate_coverage_reports
+      - report_failing_tests
+  - id: ui_tester
+    name: UI Tester
+    pod: qa
+    reports_to: qa_lead
+    manages: []
+    role: >-
+      Simulates user flows, clicks, and visual regressions.
+    responsibilities:
+      - build_end_to_end_tests
+      - verify_ui_against_design_specs
+      - log_bugs_with_repro_steps
+  - id: edge_case_monkey
+    name: Edge Case Monkey
+    pod: qa
+    reports_to: qa_lead
+    manages: []
+    role: >-
+      Tries to break the system with weird inputs and edge conditions.
+    responsibilities:
+      - fuzz_test_forms_and_apis
+      - test_unexpected_user_behaviors
+      - document_crashes
+  - id: performance_analyst
+    name: Performance Analyst
+    pod: qa
+    reports_to: qa_lead
+    manages: []
+    role: >-
+      Benchmarks load time, throughput, and latency for core flows.
+    responsibilities:
+      - run_load_tests
+      - profile_slow_endpoints
+      - suggest_optimizations
+  - id: growth_head
+    name: Head of Sales & Growth
+    pod: growth
+    reports_to: ceo
+    manages:
+      - copywriter
+      - ad_designer
+      - social_manager
+      - seo_specialist
+      - support_bot
+      - analytics_officer
+      - pivot_master
+    role: >-
+      Owns funnel performance, pricing, and scaling decisions.
+    responsibilities:
+      - define_pricing_strategy
+      - approve_launches
+      - coordinate_scaling_or_pivots
+  - id: copywriter
+    name: Copywriter
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Writes landing pages, emails, and sales scripts optimized for conversions.
+    responsibilities:
+      - craft_hooks_and_headlines
+      - write_email_sequences
+      - a_b_test_copy_variants
+  - id: ad_designer
+    name: Ad Creative Designer
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Generates ad creatives via prompt-based design tools.
+    responsibilities:
+      - generate_prompts_for_creatives
+      - design_thumbnails_and_ad_images
+      - package_assets_for_platforms
+  - id: social_manager
+    name: Social Media Manager
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Plans and posts social content to drive awareness and traffic.
+    responsibilities:
+      - schedule_posts
+      - repurpose_content
+      - monitor_engagement
+  - id: seo_specialist
+    name: SEO Specialist
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Optimizes pages and content for search visibility and organic traffic.
+    responsibilities:
+      - set_meta_titles
+      - map_internal_links
+      - coordinate_with_keyword_analyst
+  - id: support_bot
+    name: Customer Support Bot
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Handles user questions and objections to refine UX.
+    responsibilities:
+      - log_common_questions
+      - propose_faq_updates
+      - surface_product_gaps
+  - id: analytics_officer
+    name: Analytics Officer
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Tracks conversion, revenue, and funnel performance across plays.
+    responsibilities:
+      - maintain_metrics_dashboard
+      - compute_kpis_for_each_play
+      - report_winners_and_losers
+  - id: pivot_master
+    name: Pivot Master
+    pod: growth
+    reports_to: growth_head
+    manages: []
+    role: >-
+      Monitors revenue vs goals and triggers pivots when plays fail.
+    responsibilities:
+      - detect_underperforming_plays
+      - propose_pivot_scenarios
+      - coordinate_resets_with_executives

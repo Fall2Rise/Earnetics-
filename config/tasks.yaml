@@ -1,0 +1,240 @@
+# config/tasks.yaml
+
+# ================
+# EXECUTIVE TASKS
+# ================
+
+set_revenue_target:
+  description: >
+    Analyze current performance dashboards and set a clear daily/weekly revenue target
+    plus high-level priorities for all pods.
+  expected_output: >
+    A concise strategy brief with: numeric targets, top 1	2	3 plays to prioritize,
+    and constraints (budget, risk).
+  agent: ceo_main
+
+shape_product_strategy:
+  description: >
+    Take the strategy brief and define 1	2 concrete product or funnel plays to pursue
+    this cycle (e.g., TikTok affiliate loop, Etsy POD, lead magnet funnel).
+  expected_output: >
+    A product_roadmap object describing: play name, target user, core promise, core steps,
+    tech requirements, and estimated time-to-cash.
+  agent: cpo_strategy
+
+choose_tech_stack:
+  description: >
+    Select the appropriate tech stack and architectural patterns to implement the chosen plays.
+  expected_output: >
+    A technical_spec including services, modules, repositories, and integration points.
+  agent: cto_tech
+
+define_brand_guidelines:
+  description: >
+    Define or refine the creative direction, tone, and visual treatment for this play.
+  expected_output: >
+    A concise brand_brief with tone, color, hooks, and emotional angle.
+  agent: cco_brand
+
+# ================
+# RESEARCH TASKS
+# ================
+
+scan_trends:
+  description: >
+    Scan social platforms and trend tools for signals that support or contradict
+    the current product_roadmap.
+  expected_output: >
+    A trends_report summarizing top 500 relevant trends, examples, and threat/opportunity notes.
+  agent: trend_hunter
+
+analyze_keywords:
+  description: >
+    Extract high-intent keywords and questions related to the play and estimate difficulty.
+  expected_output: >
+    A keyword_matrix with search terms, volume, difficulty, and intent classification.
+  agent: keyword_analyst
+
+map_competitors:
+  description: >
+    Identify top 5 competitors for this play and summarize their offers, pricing, and hooks.
+  expected_output: >
+    A competitor_brief with URLs, funnel steps, differentiators, and weaknesses.
+  agent: competitor_spy
+
+simulate_personas:
+  description: >
+    Construct 3 detailed buyer personas for this play, including pains, desires,
+    objections, and language used.
+  expected_output: >
+    A personas_doc with named personas and narrative descriptions.
+  agent: user_persona_bot
+
+score_niche:
+  description: >
+    Score the opportunity using a numeric model (potential, difficulty, time-to-cash, risk).
+  expected_output: >
+    A niche_scorecard with overall win_probability and recommendation (go / adjust / abandon).
+  agent: niche_validator
+
+# ================
+# ENGINEERING TASKS
+# ================
+
+design_architecture:
+  description: >
+    Convert the technical_spec and research outputs into a concrete system design with modules,
+    data flows, and APIs.
+  expected_output: >
+    An architecture_doc with diagrams, module list, and integration notes.
+  agent: lead_architect
+
+implement_backend_services:
+  description: >
+    Implement or update Python backend services, schedulers, and automation scripts needed
+    for the selected play.
+  expected_output: >
+    A github_repository_link and summary of created/modified modules.
+  agent: python_backend
+
+implement_frontend_ui:
+  description: >
+    Implement or update the user-facing dashboards, landing pages, and relevant UI.
+  expected_output: >
+    A ui_commit_summary with URLs or paths to updated components.
+  agent: frontend_dev
+
+update_3d_visualization:
+  description: >
+    Sync the 3D war room/Unity view with the new play, agents, and pod statuses.
+  expected_output: >
+    A visualization_update_report describing new scenes, states, and mappings.
+  agent: unity_frontend
+
+design_database:
+  description: >
+    Create or update DB schemas, tables, and indexes required to store leads, events, and revenue.
+  expected_output: >
+    A db_migration_plan and schema_diff summary.
+  agent: db_engineer
+
+setup_ci_cd:
+  description: >
+    Ensure the new or updated services and frontends are covered by CI/CD pipelines, containers,
+    and deployment scripts.
+  expected_output: >
+    A devops_status_report with pipeline status and deployment commands.
+  agent: devops_engineer
+
+security_review:
+  description: >
+    Review new code and endpoints for security risks, misconfigurations, and exposed secrets.
+  expected_output: >
+    A security_report with findings, severity, and required fixes.
+  agent: security_auditor
+
+code_quality_review:
+  description: >
+    Perform a high-level code review for maintainability, clarity, and adherence to standards.
+  expected_output: >
+    A review_notes document with approvals and requested changes.
+  agent: code_reviewer
+
+# ================
+# QA TASKS
+# ================
+
+run_unit_tests:
+  description: >
+    Run and/or update automated unit tests for the affected modules.
+  expected_output: >
+    A unit_test_report with pass/fail counts and coverage trends.
+  agent: unit_tester
+
+test_user_flows:
+  description: >
+    Run through critical user journeys (from traffic to checkout or signup) and document issues.
+  expected_output: >
+    A ui_test_log with screenshots, failure steps, and severity ratings.
+  agent: ui_tester
+
+stress_edge_cases:
+  description: >
+    Hit the system with unusual inputs, load patterns, and order of operations to break it.
+  expected_output: >
+    An edge_case_report listing reproducible breakage and weird behavior.
+  agent: edge_case_monkey
+
+benchmark_performance:
+  description: >
+    Measure performance under realistic traffic and record bottlenecks.
+  expected_output: >
+    A performance_profile with response time graphs, throughput, and recommendations.
+  agent: performance_analyst
+
+qa_signoff:
+  description: >
+    Decide whether the current build is shippable or blocked, and under what conditions.
+  expected_output: >
+    A deployment_approval object containing status (approve/conditional/block) and notes.
+  agent: head_qa
+
+# ================
+# GROWTH & REVENUE TASKS
+# ================
+
+set_pricing_strategy:
+  description: >
+    Decide price points, bundles, discount rules, and upsells for this play.
+  expected_output: >
+    A pricing_sheet with final recommended prices and rationale.
+  agent: head_sales
+
+write_landing_page:
+  description: >
+    Write or update the main sales page copy for this play using research and persona insights.
+  expected_output: >
+    A landing_page_draft with headline, subhead, sections, bullets, and CTA copy.
+  agent: copywriter_agent
+
+generate_ad_creatives:
+  description: >
+    Produce ad concepts and prompts for image/video generation tools.
+  expected_output: >
+    An ad_creative_brief with multiple angles, hooks, and prompt templates.
+  agent: ad_creative_designer
+
+plan_social_campaign:
+  description: >
+    Design a short social campaign (posts, hooks, CTAs) to drive initial traffic.
+  expected_output: >
+    A social_calendar with per-platform posts and timing.
+  agent: social_media_manager
+
+optimize_for_seo:
+  description: >
+    Apply on-page SEO, metadata, and content structure aligned with the keyword_matrix.
+  expected_output: >
+    An seo_optimization_report listing changes, target keywords, and internal links.
+  agent: seo_specialist
+
+setup_support_flows:
+  description: >
+    Prepare FAQ, canned responses, and support flows for the new play.
+  expected_output: >
+    A support_playbook and initial knowledge base entries.
+  agent: customer_support_bot
+
+track_and_report_metrics:
+  description: >
+    Track key metrics post-launch and compile them into a concise dashboard.
+  expected_output: >
+    A revenue_dashboard snapshot with CTR, conversion, AOV, and daily revenue.
+  agent: analytics_officer
+
+pivot_decision:
+  description: >
+    Decide whether to scale, iterate, or pivot away from this play based on metrics.
+  expected_output: >
+    A pivot_decision_doc with chosen action and proposed next steps.
+  agent: pivot_master

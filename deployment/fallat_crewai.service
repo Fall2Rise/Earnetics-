@@ -1,0 +1,18 @@
+[Unit]
+Description=Fallat CrewAI FastAPI Service
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/opt/fallat_crewai
+Environment="FALLAT_API_TOKEN=${FALLAT_API_TOKEN}"
+EnvironmentFile=/opt/fallat_crewai/.env
+ExecStart=/opt/fallat_crewai/.venv/bin/uvicorn backend.main_server:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

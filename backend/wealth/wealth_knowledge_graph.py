@@ -1,0 +1,1 @@
+from backend.ewc.wealth_knowledge_graph import WealthKnowledgeGraph

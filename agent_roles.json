@@ -1,0 +1,32 @@
+{
+    "ArchitectAgent": {
+        "can_edit": [
+            "spec/system_manifest.yaml"
+        ],
+        "output": [
+            "plans",
+            "task_lists"
+        ],
+        "description": "Analyzes high-level goals and breaks them down into technical tasks."
+    },
+    "CodegenAgent": {
+        "can_edit": [
+            "builder/workspace/**",
+            "core/**",
+            "scripts/**"
+        ],
+        "output": [
+            "patches",
+            "code_files"
+        ],
+        "description": "Writes code to fulfill tasks defined by the Architect."
+    },
+    "ReleaseManager": {
+        "can_edit": [
+            "core/**",
+            "releases/**"
+        ],
+        "guard_condition": "tests_passed == true",
+        "description": "Merges changes and manages deployments after verification."
+    }
+}

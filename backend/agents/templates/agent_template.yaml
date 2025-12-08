@@ -1,0 +1,12 @@
+cpo:
+  name: Chief Product Officer
+  pod: executive
+  reports_to: ceo
+  manages: []
+  role: >-
+    Translates revenue targets into product roadmaps, funnels, and offers.
+  responsibilities:
+    - maintain_product_roadmap
+    - select_core_plays_for_execution
+    - define_feature_sets_for_each_play
+    - coordinate_with_research_and_engineering

@@ -1,0 +1,165 @@
+crews:
+  executive_crew:
+    description: >
+      Executive & Strategy pod. Sets revenue targets and translates them into
+      product and technical direction.
+    agents:
+      - ceo_main
+      - cpo_strategy
+      - cto_tech
+      - cco_brand
+    tasks:
+      - set_revenue_target
+      - shape_product_strategy
+      - choose_tech_stack
+      - define_brand_guidelines
+    process: sequential
+
+  research_crew:
+    description: >
+      Market Research pod. Validates the product roadmap and provides hard data.
+    agents:
+      - head_research
+      - trend_hunter
+      - keyword_analyst
+      - competitor_spy
+      - user_persona_bot
+      - niche_validator
+    tasks:
+      - scan_trends
+      - analyze_keywords
+      - map_competitors
+      - simulate_personas
+      - score_niche
+    process: sequential
+
+  engineering_crew:
+    description: >
+      Engineering pod. Designs, builds, and packages the software and automations.
+    agents:
+      - head_engineering
+      - lead_architect
+      - python_backend
+      - frontend_dev
+      - unity_frontend
+      - db_engineer
+      - devops_engineer
+      - security_auditor
+      - code_reviewer
+    tasks:
+      - design_architecture
+      - implement_backend_services
+      - implement_frontend_ui
+      - update_3d_visualization
+      - design_database
+      - setup_ci_cd
+      - security_review
+      - code_quality_review
+    process: sequential
+
+  qa_crew:
+    description: >
+      QA pod. Stress-tests the system and controls the deployment gate.
+    agents:
+      - head_qa
+      - unit_tester
+      - ui_tester
+      - edge_case_monkey
+      - performance_analyst
+    tasks:
+      - run_unit_tests
+      - test_user_flows
+      - stress_edge_cases
+      - benchmark_performance
+      - qa_signoff
+    process: sequential
+
+  sales_crew:
+    description: >
+      Growth & Revenue pod. Launches, promotes, and optimizes monetization.
+    agents:
+      - head_sales
+      - copywriter_agent
+      - ad_creative_designer
+      - social_media_manager
+      - seo_specialist
+      - customer_support_bot
+      - analytics_officer
+      - pivot_master
+    tasks:
+      - set_pricing_strategy
+      - write_landing_page
+      - generate_ad_creatives
+      - plan_social_campaign
+      - optimize_for_seo
+      - setup_support_flows
+      - track_and_report_metrics
+      - pivot_decision
+    process: sequential
+
+flows:
+  revenue_loop:
+    - name: Strategy_Phase
+      crew: executive_crew
+      inputs:
+        - current_revenue_state
+        - historical_metrics
+      outputs:
+        - product_roadmap
+        - technical_spec
+        - brand_brief
+
+    - name: Validation_Phase
+      crew: research_crew
+      inputs:
+        - product_roadmap
+      outputs:
+        - trends_report
+        - keyword_matrix
+        - competitor_brief
+        - personas_doc
+        - niche_scorecard
+
+    - name: Build_Phase
+      crew: engineering_crew
+      inputs:
+        - product_roadmap
+        - technical_spec
+        - niche_scorecard
+      outputs:
+        - architecture_doc
+        - github_repository_link
+        - ui_commit_summary
+        - db_migration_plan
+        - devops_status_report
+        - security_report
+        - review_notes
+
+    - name: Testing_Phase
+      crew: qa_crew
+      inputs:
+        - github_repository_link
+        - architecture_doc
+      outputs:
+        - unit_test_report
+        - ui_test_log
+        - edge_case_report
+        - performance_profile
+        - deployment_approval
+
+    - name: Launch_Phase
+      crew: sales_crew
+      inputs:
+        - deployment_approval
+        - personas_doc
+        - keyword_matrix
+        - brand_brief
+      outputs:
+        - pricing_sheet
+        - landing_page_draft
+        - ad_creative_brief
+        - social_calendar
+        - seo_optimization_report
+        - support_playbook
+        - revenue_dashboard
+        - pivot_decision_doc

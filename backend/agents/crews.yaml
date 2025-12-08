@@ -1,0 +1,127 @@
+crews:
+  executive_crew:
+    description: "Exec pod choosing next revenue play and constraints."
+    agents:
+      - ceo_main
+      - cpo_strategy
+      - cto_engineering
+      - cco_brand
+    tasks:
+      - select_play
+      - align_constraints
+  research_crew:
+    description: "Research pod validating and scoring the play."
+    agents:
+      - head_research
+      - trend_hunter
+      - keyword_analyst
+      - competitor_spy
+    tasks:
+      - validate_play
+      - score_opportunity
+  engineering_crew:
+    description: "Engineering pod producing automation modules."
+    agents:
+      - head_engineering
+      - python_backend
+      - frontend_ux
+      - devops_deployer
+    tasks:
+      - design_module
+      - implement_module
+  qa_crew:
+    description: "QA pod ensuring modules are safe to ship."
+    agents:
+      - head_qa
+      - unit_tester
+    tasks:
+      - qa_module
+  sales_crew:
+    description: "Growth pod launching and monetizing plays."
+    agents:
+      - head_sales
+      - copywriter_agent
+      - social_manager
+      - analytics_officer
+    tasks:
+      - launch_play
+      - craft_report
+
+flows:
+  revenue_loop:
+    - name: Strategy_Phase
+      crew: executive_crew
+      inputs: [market_context]
+      outputs: [product_roadmap]
+    - name: Research_Phase
+      crew: research_crew
+      inputs: [product_roadmap]
+      outputs: [validated_opportunity]
+    - name: Build_Phase
+      crew: engineering_crew
+      inputs: [validated_opportunity]
+      outputs: [automation_module_spec]
+    - name: QA_Phase
+      crew: qa_crew
+      inputs: [automation_module_spec]
+      outputs: [approved_module]
+    - name: Launch_Phase
+      crew: sales_crew
+      inputs: [approved_module]
+      outputs: [revenue_play_report]
+
+tasks:
+  select_play:
+    agent: ceo_main
+    description: "Select the revenue play that aligns with current signals."
+    inputs: [market_context]
+    expected_output:
+      play_choice: {}
+  align_constraints:
+    agent: cpo_strategy
+    description: "Translate the chosen play into product roadmap constraints."
+    inputs: [market_context]
+    expected_output:
+      product_roadmap: {}
+  validate_play:
+    agent: head_research
+    description: "Validate the roadmap with fresh research and evidence."
+    inputs: [product_roadmap]
+    expected_output:
+      validated_opportunity: {}
+  score_opportunity:
+    agent: trend_hunter
+    description: "Score opportunity confidence using trends and keywords."
+    inputs: [validated_opportunity]
+    expected_output:
+      validated_opportunity: {}
+  design_module:
+    agent: head_engineering
+    description: "Design automation module spec from the opportunity."
+    inputs: [validated_opportunity]
+    expected_output:
+      automation_module_spec: {}
+  implement_module:
+    agent: python_backend
+    description: "Implement automation by describing module build plan."
+    inputs: [automation_module_spec]
+    expected_output:
+      automation_module_spec: {}
+  qa_module:
+    agent: head_qa
+    description: "Review module spec for readiness."
+    inputs: [automation_module_spec]
+    expected_output:
+      approved_module: {}
+  launch_play:
+    agent: head_sales
+    description: "Launch approved module to market and craft revenue play."
+    inputs: [approved_module]
+    expected_output:
+      revenue_play_report: {}
+  craft_report:
+    agent: analytics_officer
+    description: "Summarize metrics and expected revenue impact."
+    inputs: [revenue_play_report]
+    expected_output:
+      revenue_play_report: {}

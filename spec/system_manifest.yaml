@@ -1,0 +1,30 @@
+version: 0.1.0
+
+core_modules:
+  - name: traffic_agent
+    status: stable
+    tests_required: true
+  - name: content_agent
+    status: beta
+    tests_required: true
+  - name: revenue_agent
+    status: stable
+    tests_required: true
+
+builder_kernel:
+  enabled: true
+  allowed_zones:
+    - core/agents
+    - core/scheduler
+    - infra/api_clients.py
+    - scripts/
+  forbidden_zones:
+    - spec/
+    - legal_docs/
+    - config/secrets.json
+    - .env
+
+goals:
+  current_sprint:
+    - "Stabilize Twitter + Shopify pipelines"
+    - "Add Shopify income stream"
