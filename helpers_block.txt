@@ -1,0 +1,167 @@
+def _format_currency(value: Optional[float]) -> str:
+    try:
+        return f"${float(value):,.2f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _format_percent(value: Optional[float]) -> str:
+    try:
+        return f"{float(value):.1f}%"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _normalise_departments(department: str, aliases: Optional[List[str]] = None) -> List[str]:
+    names = set()
+    if department:
+        names.add(department.strip().lower())
+    if aliases:
+        for alias in aliases:
+            if alias:
+                names.add(alias.strip().lower())
+    return [name for name in names if name]
+
+def _department_task_summary(department: str, aliases: Optional[List[str]] = None) -> Dict[str, int]:
+    summary: Dict[str, int] = {"total": 0, "pending": 0, "in_progress": 0, "completed": 0}
+    names = _normalise_departments(department, aliases)
+    if not names:
+        return summary
+    placeholders = ",".join(["?"] * len(names))
+    query = f"""
+        SELECT LOWER(status) AS status, COUNT(*) AS count
+        FROM department_tasks
+        WHERE LOWER(department) IN ({placeholders})
+        GROUP BY LOWER(status)
+    """
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(query, tuple(names))
+            for row in cursor.fetchall():
+                count = row["count"] or 0
+                summary["total"] += count
+                status = (row["status"] or "").lower()
+                if status == "completed":
+                    summary["completed"] = count
+                elif status == "in_progress":
+                    summary["in_progress"] = count
+                else:
+                    summary["pending"] += count
+    except sqlite3.Error:
+        pass
+    return summary
+
+def get_department_task_preview(
+    department: str,
+    aliases: Optional[List[str]] = None,
+    limit: int = 6,
+) -> List[Dict[str, str]]:
+    names = _normalise_departments(department, aliases)
+    if not names:
+        return []
+    placeholders = ",".join(["?"] * len(names))
+    query = f"""
+        SELECT title, status, priority
+        FROM department_tasks
+        WHERE LOWER(department) IN ({placeholders})
+        ORDER BY COALESCE(updated_at, created_at) DESC
+        LIMIT ?
+    """
+    tasks: List[Dict[str, str]] = []
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(query, (*names, limit))
+            for row in cursor.fetchall():
+                tasks.append(
+                    {
+                        "title": row["title"] or "Untitled task",
+                        "status": (row["status"] or "pending").replace("_", " ").title(),
+                        "priority": (row["priority"] or "medium").title(),
+                    }
+                )
+    except sqlite3.Error:
+        pass
+    return tasks
+
+def _get_finance_metrics() -> List[Dict[str, str]]:
+    metrics: List[Dict[str, str]] = []
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT COALESCE(SUM(amount), 0) AS gross,
+                       COALESCE(SUM(net_amount), 0) AS net,
+                       COUNT(*) AS tx_count
+                FROM stripe_transactions
+                WHERE status = 'completed'
+                """
+            )
+            row = cursor.fetchone()
+            if row:
+                metrics.append(
+                    {
+                        "label": "Total Revenue",
+                        "value": _format_currency(row["gross"]),
+                        "note": f"{row['tx_count']} completed transactions",
+                    }
+                )
+                metrics.append(
+                    {
+                        "label": "Net Revenue",
+                        "value": _format_currency(row["net"]),
+                        "note": "After Stripe fees",
+                    }
+                )
+            cursor.execute(
+                """
+                SELECT COALESCE(SUM(owner_payout), 0) AS payouts,
+                       COALESCE(SUM(reinvestment_amount), 0) AS reinvest
+                FROM financial_operations
+                """
+            )
+            row = cursor.fetchone()
+            if row:
+                metrics.append(
+                    {
+                        "label": "Owner Payouts",
+                        "value": _format_currency(row["payouts"]),
+                        "note": "Automated 80/20 distributions",
+                    }
+                )
+                metrics.append(
+                    {
+                        "label": "Reinvestment Fund",
+                        "value": _format_currency(row["reinvest"]),
+                        "note": "Allocated to growth initiatives",
+                    }
+                )
+            cursor.execute(
+                "SELECT COUNT(*) AS pending FROM transactions WHERE status != 'completed'"
+            )
+            row = cursor.fetchone()
+            if row and row["pending"]:
+                metrics.append(
+                    {
+                        "label": "Pending Payments",
+                        "value": str(row["pending"]),
+                        "note": "Awaiting completion",
+                    }
+                )
+    except sqlite3.Error:
+        pass
+    summary = _department_task_summary("finance", aliases=["financial"])
+    if summary["total"]:
+        metrics.append(
+            {
+                "label": "Finance Tasks",
+                "value": str(summary["total"]),
+                "note": f"In progress {summary['in_progress']} • Completed {summary['completed']}",
+            }
+        )
+    return metrics

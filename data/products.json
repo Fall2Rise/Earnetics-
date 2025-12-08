@@ -1,0 +1,15 @@
+[
+  {
+    "id": "the-609-machine",
+    "slug": "the-609-machine",
+    "name": "The 609 Machine",
+    "price_usd": 47.0,
+    "payment_link_url": "https://buy.stripe.com/YOUR_REAL_LINK",
+    "summary": "Automated 609 toolkit with guided steps.",
+    "details": "Automated 609 toolkit with guided steps.",
+    "image_url": "https://placehold.co/1200x800/png",
+    "category": "Credit",
+    "created_at": "2025-08-28T16:50:07.757392Z",
+    "published": true
+  }
+]

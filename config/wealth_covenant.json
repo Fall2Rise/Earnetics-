@@ -1,0 +1,41 @@
+{
+  "owner": {
+    "owner_id": "PLACEHOLDER",
+    "owner_token_hash": "PLACEHOLDER"
+  },
+  "objectives": {
+    "primary_objective": "PLACEHOLDER",
+    "secondary_objectives": [],
+    "target_horizon_years": 0,
+    "target_monthly_cashflow_usd": 0,
+    "min_cash_reserve_months": 0
+  },
+  "risk_profile": {
+    "tiers": [],
+    "default_risk_tier": "PLACEHOLDER"
+  },
+  "legal_constraints": {
+    "respect_platform_tos": true,
+    "avoid_sanctioned_jurisdictions": true,
+    "no_tax_evasion": true,
+    "no_money_laundering": true,
+    "no_fraud_or_deception": true
+  },
+  "ethical_preferences": {
+    "no_exploitation_of_vulnerable_groups": true,
+    "no_illegal_data_sources": true,
+    "no_promoting_harmful_products": true
+  },
+  "capital_limits": {
+    "max_daily_spend_usd": 0,
+    "max_single_bet_usd": 0,
+    "max_open_experimental_budget_usd": 0,
+    "max_monthly_tool_subscriptions_usd": 0
+  },
+  "operational_preferences": {
+    "exploration_fraction": 0.0,
+    "min_play_runtime_days_before_judgement": 0,
+    "max_concurrent_active_plays": 0,
+    "max_concurrent_experiments_per_loop": 0
+  }
+}

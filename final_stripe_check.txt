@@ -1,0 +1,14 @@
+=== YOUR STRIPE PRODUCTS ===
+
+Total products in Stripe: 1
+
+✅ Automation Mastermind
+   $497.00/month
+   ID: prod_TVUKLHeYGLf4QI
+
+
+--- VERIFICATION ---
+✅ Automation Mastermind: FOUND
+❌ 24/7 AI Sales Agent: MISSING
+❌ AI Content Engine: MISSING
+❌ Automation Vault: MISSING

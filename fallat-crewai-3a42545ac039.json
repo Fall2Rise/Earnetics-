@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "fallat-crewai",
+  "private_key_id": "3a42545ac039d75803b5f642088183b3034d4812",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC3DE+kJjyjDZbG\nlCTMs2pbEQujTS5kQYkcFqBAlilOwT0qDCAto+BmTe8Lo4ADubiIMSNWCFhuYQlC\nidZ7k48vvT+y2QzcrtDpoAgfaLCEOC9sRJSpUDzFo/7nxj6u1LrHeGSxwXxaU2I7\nrIZnLpXuc0Ni7vZTWoije7rnqi14oUdCMwIlAW2doktJ+2sUZi6eKeU2P91vI3hb\nVmnE7vDU9bhuuxA1jsKjWmZsQZFBifne4zHR73aOnMBeorNJbF28l8YIxVAf69xO\nr5v//RlgQ5ZeVrnK9MJAxQU2wwILKL30h+a5a7s4S7o24gY4vCWwdFbLut9xwVgR\n3ifMZFVLAgMBAAECggEAC44o5ugNCDle4nP5VhIgwtVIIqEdg8cJVJnEYwoNBdji\nt2lNjLldfJ0rMSpl9euUT8X+VjuE+EQtlU2QmdDTsgP55fHtbcRRZuDV3Rm67uss\naeLIbwnO1FEz0cYs2yo4Ykg3icB496tvi5cquDpzd4/qL0V+N6ktmq3AZkh9bLHH\nfVftTkWNBnQkWfafKo/KOBUxqeWKebs0SD8efq7VvcRoWtN8qGUqHHz98JvOFoZi\n+1pT4objURsILTWufTpJEteT9uP3A3EVlZlGZ2xK7+RQeOPXEYtoO6tYnCPT+cif\nFhOPb0rBsJAC1vx6+AOHF4QLE7XO8HcvM+tg/YKvCQKBgQD0x3+9ReVO29fHhj4U\nmB2+oIQ6oXT5gYg3KLyYgJ1nk8nfzvviaEz7EE064kljanLp7GmGUupDpuVNPiFY\n5vfYD/NIRLiHu3DiXirx02zgxzYgB2psbHddjPiWaAlIuxv7nq5XM4j51ksnpwm7\nyqP4LXRSdDbC3s/BrYtJjICMaQKBgQC/cGR1QhphJuO4sd5p+d4FTNtCFYmzCbVo\nW/ZPbYzXNvPBpxwZpap8u9VB4YrxFh/zoiiysX72x9kycwyTqIvKUftUGmpeeSmI\nZwtKanCJsCC8QmwNV7x96bXJ7ydIPoL+3u6EGFGZ0Ao96a6w2Vb3mlcitVSR1i/t\n9q5UXxNtkwKBgDbYLErgSkys/V/7OBWtL5zyoi3w1yDAYSDaw8b3qkz21BiNa+qC\nrBzkvikfYoof47d9/PbXxR17W40/CoG83nNOv5fFrgLbgKN3re+ZC6AhgoMSpkm8\n09HmMByjGtFs+wwZtb5cEajI1vX/ezLUaIDGznVbDJoFCk++7qKAFJ1hAoGAbJ+X\nQLlrQmjQmYHDU5qFkbhUSKDz6vS9TCOyFMtyOMNjeCQb26mWnQPvM1yIe9cz9gey\n1AHGqrwmz2tcXYQrHXd7BfOfG0/gcxcU3vqaNGYNjQSbTs7TkxZDIfti7KkbpwZT\ni/xIgN/8j7jCeHI52HBotLby73T66SkpLZJs8aUCgYArTfDQ0iQ+Q7pyD2pj08b4\nI6M0CUxa5oEicLIFpQ3FA6leZJdUqs15WjiynHLwQiPlm0lPGMe27kYY+U5Pow1K\nULbBICwGimVQPP6T+rzCBkHf9zfrn+3Fem0nG5fE0n7KjCOvUZ5/M/clXbMTSh/+\nR2IH4jRZt+SWKzwNN7n7jg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "fallat-crewai@fallat-crewai.iam.gserviceaccount.com",
+  "client_id": "108623130869627979603",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/fallat-crewai%40fallat-crewai.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Revenue Command Center - Loading...</title>
+</head>
+<body>
+    <h1>AI Revenue Command Center</h1>
+    <p>If you see this, the server is working!</p>
+    <p>Checking system status...</p>
+    <div id="status"></div>
+    <script>
+        fetch('/health')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('status').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(e => {
+                document.getElementById('status').innerHTML = '<p style="color:red">Error: ' + e + '</p>';
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "ardupilot",
+			"overrideEnabled": true,
+			"configName": "ardupilot-distclean",
+			"customConfigureCommand": "c:\\Users\\Joshua\\OneDrive\\Desktop\\Ai wealth\\Fallat_CrewAI\\venv\\Scripts\\python.exe c:\\Users\\Joshua\\OneDrive\\Desktop\\Ai wealth\\Fallat_CrewAI\\waf distclean",
+			"customBuildCommand": "true",
+			"problemMatcher": [
+				"$apgcc"
+			],
+			"label": "ardupilot: ardupilot-distclean"
+		}
+	]
+}

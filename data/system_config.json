@@ -1,0 +1,124 @@
+{
+  "system_info": {
+    "setup_date": "2025-08-25T11:11:32.136460",
+    "atlas_version": "1.0.0",
+    "status": "configuration_template"
+  },
+  "api_credentials": {
+    "STRIPE_SECRET_KEY": {
+      "value": "INSERT_STRIPE_SECRET_KEY_HERE",
+      "service": "Stripe Payment Processing",
+      "required": true,
+      "setup_url": "https://dashboard.stripe.com/register"
+    },
+    "STRIPE_PUBLISHABLE_KEY": {
+      "value": "INSERT_STRIPE_PUBLISHABLE_KEY_HERE",
+      "service": "Stripe Payment Processing",
+      "required": true,
+      "setup_url": "https://dashboard.stripe.com/register"
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "value": "INSERT_STRIPE_WEBHOOK_SECRET_HERE",
+      "service": "Stripe Payment Processing",
+      "required": true,
+      "setup_url": "https://dashboard.stripe.com/register"
+    },
+    "OPENAI_API_KEY": {
+      "value": "INSERT_OPENAI_API_KEY_HERE",
+      "service": "OpenAI API",
+      "required": true,
+      "setup_url": "https://platform.openai.com/signup"
+    },
+    "SENDGRID_API_KEY": {
+      "value": "INSERT_SENDGRID_API_KEY_HERE",
+      "service": "SendGrid Email Service",
+      "required": true,
+      "setup_url": "https://signup.sendgrid.com/"
+    },
+    "TWITTER_API_KEY": {
+      "value": "INSERT_TWITTER_API_KEY_HERE",
+      "service": "Twitter API (X)",
+      "required": true,
+      "setup_url": "https://developer.twitter.com/en/portal/dashboard"
+    },
+    "TWITTER_API_SECRET": {
+      "value": "INSERT_TWITTER_API_SECRET_HERE",
+      "service": "Twitter API (X)",
+      "required": true,
+      "setup_url": "https://developer.twitter.com/en/portal/dashboard"
+    },
+    "TWITTER_ACCESS_TOKEN": {
+      "value": "INSERT_TWITTER_ACCESS_TOKEN_HERE",
+      "service": "Twitter API (X)",
+      "required": true,
+      "setup_url": "https://developer.twitter.com/en/portal/dashboard"
+    },
+    "TWITTER_ACCESS_SECRET": {
+      "value": "INSERT_TWITTER_ACCESS_SECRET_HERE",
+      "service": "Twitter API (X)",
+      "required": true,
+      "setup_url": "https://developer.twitter.com/en/portal/dashboard"
+    },
+    "GOOGLE_ANALYTICS_ID": {
+      "value": "INSERT_GOOGLE_ANALYTICS_ID_HERE",
+      "service": "Google Analytics",
+      "required": false,
+      "setup_url": "https://analytics.google.com/"
+    },
+    "GOOGLE_API_KEY": {
+      "value": "INSERT_GOOGLE_API_KEY_HERE",
+      "service": "Google Analytics",
+      "required": false,
+      "setup_url": "https://analytics.google.com/"
+    },
+    "WEBHOOK_TEST_URL": {
+      "value": "INSERT_WEBHOOK_TEST_URL_HERE",
+      "service": "Webhooks.site Testing",
+      "required": false,
+      "setup_url": "https://webhook.site/"
+    },
+    "DOMAIN_NAME": {
+      "value": "INSERT_DOMAIN_NAME_HERE",
+      "service": "Domain Registration",
+      "required": false,
+      "setup_url": "https://www.namecheap.com/"
+    },
+    "DNS_PROVIDER": {
+      "value": "INSERT_DNS_PROVIDER_HERE",
+      "service": "Domain Registration",
+      "required": false,
+      "setup_url": "https://www.namecheap.com/"
+    },
+    "AWS_ACCESS_KEY": {
+      "value": "INSERT_AWS_ACCESS_KEY_HERE",
+      "service": "AWS/CloudFlare CDN",
+      "required": false,
+      "setup_url": "https://aws.amazon.com/"
+    },
+    "AWS_SECRET_KEY": {
+      "value": "INSERT_AWS_SECRET_KEY_HERE",
+      "service": "AWS/CloudFlare CDN",
+      "required": false,
+      "setup_url": "https://aws.amazon.com/"
+    }
+  },
+  "service_configurations": {},
+  "environment_variables": {
+    "STRIPE_SECRET_KEY": "INSERT_STRIPE_SECRET_KEY_HERE",
+    "STRIPE_PUBLISHABLE_KEY": "INSERT_STRIPE_PUBLISHABLE_KEY_HERE",
+    "STRIPE_WEBHOOK_SECRET": "INSERT_STRIPE_WEBHOOK_SECRET_HERE",
+    "OPENAI_API_KEY": "INSERT_OPENAI_API_KEY_HERE",
+    "SENDGRID_API_KEY": "INSERT_SENDGRID_API_KEY_HERE",
+    "TWITTER_API_KEY": "INSERT_TWITTER_API_KEY_HERE",
+    "TWITTER_API_SECRET": "INSERT_TWITTER_API_SECRET_HERE",
+    "TWITTER_ACCESS_TOKEN": "INSERT_TWITTER_ACCESS_TOKEN_HERE",
+    "TWITTER_ACCESS_SECRET": "INSERT_TWITTER_ACCESS_SECRET_HERE",
+    "GOOGLE_ANALYTICS_ID": "INSERT_GOOGLE_ANALYTICS_ID_HERE",
+    "GOOGLE_API_KEY": "INSERT_GOOGLE_API_KEY_HERE",
+    "WEBHOOK_TEST_URL": "INSERT_WEBHOOK_TEST_URL_HERE",
+    "DOMAIN_NAME": "INSERT_DOMAIN_NAME_HERE",
+    "DNS_PROVIDER": "INSERT_DNS_PROVIDER_HERE",
+    "AWS_ACCESS_KEY": "INSERT_AWS_ACCESS_KEY_HERE",
+    "AWS_SECRET_KEY": "INSERT_AWS_SECRET_KEY_HERE"
+  }
+}

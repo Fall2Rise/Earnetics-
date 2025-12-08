@@ -1,0 +1,46 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>AI Revenue Command Center — Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore products from AI Revenue Command Center.">
+    <link rel="stylesheet" href="../assets/shop.css">
+    <link rel="canonical" href="{{SITE_BASE_URL}}/shop/">
+    {{GA4}}
+</head>
+<body>
+    <div class="header">
+        <div class="logo" data-brand="headline">AI REVENUE COMMAND CENTER</div>
+        <div class="nav"><a href="/">Home</a><a href="/shop/">Shop</a></div>
+    </div>
+    <main>
+        {{PRODUCT_GRID}}
+    </main>
+    <footer>© {{YEAR}} <span data-brand="footer">AI Revenue Command Center</span></footer>
+    <script>
+        (async () => {
+            try {
+                const response = await fetch('/api/branding');
+                if (!response.ok) return;
+                const branding = await response.json();
+                const name = branding.name || 'AI Revenue Command Center';
+                document.title = `${name} — Shop`;
+                document.querySelectorAll('[data-brand="headline"]').forEach((el) => {
+                    el.textContent = name;
+                });
+                document.querySelectorAll('[data-brand="footer"]').forEach((el) => {
+                    el.textContent = name;
+                });
+                const meta = document.querySelector('meta[name="description"]');
+                if (meta) {
+                    const tagline = branding.tagline ? ` ${branding.tagline}` : '';
+                    meta.setAttribute('content', `Explore products from ${name}.${tagline}`);
+                }
+            } catch (error) {
+                console.error('Unable to load branding configuration', error);
+            }
+        })();
+    </script>
+</body>
+</html>

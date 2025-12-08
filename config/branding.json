@@ -1,0 +1,11 @@
+{
+  "name": "AI Revenue Command Center",
+  "tagline": "Autonomous revenue divisions under your command",
+  "logo_url": "/static/branding/custom-logo.jpg",
+  "primary_color": "#00f5d4",
+  "accent_color": "#4facfe",
+  "background_style": "linear-gradient(135deg, #05060f 0%, #0e1535 60%, #061028 100%)",
+  "dashboard_message": "Your AI departments are synced and generating live revenue.",
+  "custom_dashboard_html": "",
+  "custom_css": ""
+}

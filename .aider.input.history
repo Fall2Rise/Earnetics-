@@ -1,0 +1,3 @@
+
+# 2025-10-14 21:35:23.885950
++Inventory `frontend/**` and `Fallat_CrewAI_old/**`. Plan the dashboard unification: one router/shell, unified auth/store/api client, config loader, logger, and a pytest + Playwright test matrix. Output a commit-by-commit checklist (small diffs).

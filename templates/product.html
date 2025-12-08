@@ -1,0 +1,54 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{TITLE}} — AI Revenue Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{SUMMARY}}">
+    <link rel="stylesheet" href="../assets/shop.css">
+    <link rel="canonical" href="{{SITE_BASE_URL}}/shop/{{SLUG}}.html">
+    {{GA4}}
+</head>
+<body>
+    <div class="header">
+        <div class="logo" data-brand="headline">AI REVENUE COMMAND CENTER</div>
+        <div class="nav"><a href="/">Home</a><a href="/shop/">Shop</a></div>
+    </div>
+    <div class="wrap">
+        <div class="breadcrumbs"><a href="/shop/">← Back to Shop</a></div>
+        <div class="product-hero">
+            <div><img src="{{IMAGE_URL}}" alt="{{TITLE}}" style="width:100%;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)"></div>
+            <div class="pad card">
+                <div class="badge">{{CATEGORY}}</div>
+                <h1 class="title" style="font-size:1.6rem">{{TITLE}}</h1>
+                <div class="price">${{PRICE}}</div>
+                <a class="btn" href="{{PAYMENT_LINK_URL}}" target="_blank" rel="noopener">Buy Now</a>
+                <p class="muted">Secure checkout via Stripe. Instant access after purchase.</p>
+            </div>
+        </div>
+        <div class="card" style="margin-top:24px">
+            <div class="pad long">{{DETAILS}}</div>
+        </div>
+    </div>
+    <footer>© {{YEAR}} <span data-brand="footer">AI Revenue Command Center</span></footer>
+    <script>
+        (async () => {
+            try {
+                const response = await fetch('/api/branding');
+                if (!response.ok) return;
+                const branding = await response.json();
+                const name = branding.name || 'AI Revenue Command Center';
+                document.title = `{{TITLE}} — ${name}`;
+                document.querySelectorAll('[data-brand="headline"]').forEach((el) => {
+                    el.textContent = name;
+                });
+                document.querySelectorAll('[data-brand="footer"]').forEach((el) => {
+                    el.textContent = name;
+                });
+            } catch (error) {
+                console.error('Unable to load branding configuration', error);
+            }
+        })();
+    </script>
+</body>
+</html>

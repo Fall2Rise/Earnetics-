@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fallat CrewAI Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+__FALLAT_STYLE__
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+.status-pill {
+    border-radius: 999px;
+    padding: 10px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+.status-pill span.label {
+    opacity: 0.8;
+}
+.status-pill span.badge {
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+.status-ok {
+    border-color: rgba(45, 212, 191, 0.5);
+}
+.status-ok .badge {
+    background: rgba(45, 212, 191, 0.16);
+    color: #22c55e;
+}
+.status-warn {
+    border-color: rgba(250, 204, 21, 0.5);
+}
+.status-warn .badge {
+    background: rgba(250, 204, 21, 0.12);
+    color: #eab308;
+}
+.status-bad {
+    border-color: rgba(248, 113, 113, 0.55);
+}
+.status-bad .badge {
+    background: rgba(248, 113, 113, 0.14);
+    color: #f97373;
+}
+.actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+.btn {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-primary {
+    border-color: var(--accent-strong);
+}
+.btn:hover {
+    filter: brightness(1.1);
+}
+#strategy-log {
+    margin-top: 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 16px;
+    border: 1px solid rgba(30, 64, 175, 0.6);
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.75rem;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+    </style>
+</head>
+<body>
+    <main class="dashboard">
+        <section class="card">
+            <h1 data-brand="headline">Fallat CrewAI Command Center</h1>
+            <p data-brand="tagline">Local agentic OS operations hub</p>
+            <p data-brand="message">
+                Connect revenue departments, monitor automation, and launch workflows from a single offline-ready console.
+            </p>
+        </section>
+        <section class="card">
+            <h2>System Snapshot</h2>
+            <div class="metric-grid" id="system-metrics">
+                <div class="metric">
+                    <div class="value" id="requests-today">0</div>
+                    <div class="label">Requests handled</div>
+                </div>
+                <div class="metric">
+                    <div class="value" id="uptime-hours">0h</div>
+                    <div class="label">Runtime</div>
+                </div>
+                <div class="metric">
+                    <div class="value" id="connected-modules">0</div>
+                    <div class="label">Active modules</div>
+                </div>
+                <div class="metric">
+                    <div class="value" id="overall-health">–</div>
+                    <div class="label">Health</div>
+                </div>
+            </div>
+        </section>
+        <section class="card">
+            <h2>Subsystem Status</h2>
+            <div class="status-grid">
+                <div class="status-pill" id="db-pill">
+                    <span class="label">Database</span>
+                    <span class="badge">…</span>
+                </div>
+                <div class="status-pill" id="vault-pill">
+                    <span class="label">Credential Vault</span>
+                    <span class="badge">…</span>
+                </div>
+                <div class="status-pill" id="vector-pill">
+                    <span class="label">Vector Memory</span>
+                    <span class="badge">…</span>
+                </div>
+                <div class="status-pill" id="stripe-pill">
+                    <span class="label">Stripe</span>
+                    <span class="badge">…</span>
+                </div>
+                <div class="status-pill" id="email-pill">
+                    <span class="label">Email</span>
+                    <span class="badge">…</span>
+                </div>
+                <div class="status-pill" id="llm-pill">
+                    <span class="label">Local LLM</span>
+                    <span class="badge">…</span>
+                </div>
+            </div>
+        </section>
+        <section class="card">
+            <h2>Strategy & Autonomy</h2>
+            <p style="margin-bottom: 8px; opacity: 0.78;">
+                Trigger the high-level Earnetics strategy loops directly from the cockpit.
+            </p>
+            <div class="actions-row">
+                <button class="btn btn-primary" onclick="runStrategicVision()">Run Strategic Vision</button>
+                <button class="btn" onclick="runCsuite()">Run C-Suite Coordination</button>
+                <button class="btn" onclick="runRevenueCycle()">Fire Revenue Cycle</button>
+            </div>
+            <div id="strategy-log"></div>
+        </section>
+        <section class="card">
+            <h2>Quick Links</h2>
+            <ul class="quick-links">
+                <li><a href="/docs">Interactive API reference</a></li>
+                <li><a href="/redoc">Schema explorer</a></li>
+                <li><a href="https://fallat.ai" target="_blank" rel="noopener">Knowledge base</a></li>
+            </ul>
+        </section>
+    </main>
+    <script>
+    function setPill(id, ok, label) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("status-ok","status-warn","status-bad");
+        const badge = el.querySelector(".badge");
+        if (!badge) return;
+        if (ok === true) {
+            el.classList.add("status-ok");
+            badge.textContent = label || "OK";
+        } else if (ok === "warn") {
+            el.classList.add("status-warn");
+            badge.textContent = label || "Check";
+        } else {
+            el.classList.add("status-bad");
+            badge.textContent = label || "Issue";
+        }
+    }
+    async function refreshSnapshot() {
+        try {
+            const [healthRes, statusRes, integrationsRes] = await Promise.all([
+                fetch("/health"),
+                fetch("/api/system/status"),
+                fetch("/api/system/integrations")
+            ]);
+            if (statusRes.ok) {
+                const status = await statusRes.json();
+                document.getElementById("requests-today").textContent = status.metrics.total_requests ?? 0;
+                document.getElementById("uptime-hours").textContent = (status.metrics.uptime_hours ?? "0") + "h";
+                document.getElementById("connected-modules").textContent = status.metrics.connected_modules ?? 0;
+            }
+            if (healthRes.ok) {
+                const health = await healthRes.json();
+                document.getElementById("overall-health").textContent = health.status ?? "n/a";
+                const checks = health.checks || {};
+                setPill("db-pill", checks.database?.ok, checks.database?.ok ? "Online" : "Issue");
+                setPill("vault-pill", checks.credential_vault?.ok, checks.credential_vault?.ok ? "Ready" : "Issue");
+                setPill("vector-pill", checks.vector_memory?.ok, checks.vector_memory?.ok ? "Ready" : "Issue");
+                setPill(
+                    "stripe-pill",
+                    checks.stripe?.ok,
+                    checks.stripe?.ok ? "Configured" : (checks.stripe?.message || "Not ready")
+                );
+            }
+            if (integrationsRes.ok) {
+                const integ = await integrationsRes.json();
+                const emailOk = integ.email?.configured;
+                const llmOk = integ.llm?.configured;
+                setPill("email-pill", emailOk, emailOk ? "Configured" : "Missing");
+                setPill("llm-pill", llmOk, llmOk ? "Configured" : "Missing");
+            }
+        } catch (err) {
+            console.warn("Unable to refresh snapshot", err);
+        }
+    }
+    function logStrategyResult(label, data) {
+        const el = document.getElementById("strategy-log");
+        if (!el) return;
+        const ts = new Date().toLocaleTimeString();
+        const snippet = JSON.stringify(data, null, 2);
+        el.textContent = "[" + ts + "] " + label + "\\n" + snippet + "\\n\\n" + el.textContent;
+    }
+    async function runStrategicVision() {
+        try {
+            const res = await fetch("/api/strategy/vision/run", { method: "POST" });
+            const data = await res.json();
+            logStrategyResult("Strategic Vision", data);
+        } catch (e) {
+            logStrategyResult("Strategic Vision ERROR", { error: String(e) });
+        }
+    }
+    async function runCsuite() {
+        try {
+            const res = await fetch("/api/strategy/csuite/run", { method: "POST" });
+            const data = await res.json();
+            logStrategyResult("C-Suite Coordination", data);
+        } catch (e) {
+            logStrategyResult("C-Suite Coordination ERROR", { error: String(e) });
+        }
+    }
+    async function runRevenueCycle() {
+        try {
+            const res = await fetch("/api/strategy/revenue_cycle/run", { method: "POST" });
+            const data = await res.json();
+            logStrategyResult("Revenue Cycle", data);
+        } catch (e) {
+            logStrategyResult("Revenue Cycle ERROR", { error: String(e) });
+        }
+    }
+    refreshSnapshot();
+    setInterval(refreshSnapshot, 30000);
+    </script>
+</body>
+</html>

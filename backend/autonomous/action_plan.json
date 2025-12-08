@@ -1,0 +1,64 @@
+{
+  "immediate_actions": [
+    {
+      "title": "Launch Immediate Sales Outreach",
+      "assigned_to": "sales_director",
+      "deadline": "2025-08-25T18:42:01.412065",
+      "expected_revenue": 2485.0
+    },
+    {
+      "title": "Emergency Revenue Generation Initiative",
+      "assigned_to": "sales_director",
+      "deadline": "2025-08-25T18:42:01.412065",
+      "expected_revenue": 2000.0
+    },
+    {
+      "title": "Launch Core Digital Product",
+      "assigned_to": "product_manager",
+      "deadline": "2025-08-25T06:42:01.412065",
+      "expected_revenue": 1940.0
+    }
+  ],
+  "today_actions": [
+    {
+      "title": "Develop Premium Upsell Product",
+      "assigned_to": "product_manager",
+      "deadline": "2025-08-27T18:42:01.413065",
+      "expected_revenue": 1970.0
+    },
+    {
+      "title": "Create High-Converting Sales Funnel",
+      "assigned_to": "marketing_manager",
+      "deadline": "2025-08-25T10:42:01.412065",
+      "expected_revenue": 1940.0
+    },
+    {
+      "title": "Optimize Pricing Strategy",
+      "assigned_to": "sales_director",
+      "deadline": "2025-08-25T02:42:01.412065",
+      "expected_revenue": 1500.0
+    },
+    {
+      "title": "Create Viral LinkedIn Content",
+      "assigned_to": "marketing_manager",
+      "deadline": "2025-08-24T22:42:01.412065",
+      "expected_revenue": 970.0
+    }
+  ],
+  "this_week_actions": [
+    {
+      "title": "Launch Targeted Ad Campaign",
+      "assigned_to": "marketing_manager",
+      "deadline": "2025-08-25T18:42:01.412065",
+      "expected_revenue": 2910.0
+    },
+    {
+      "title": "Implement Revenue Tracking Dashboard",
+      "assigned_to": "data_analyst",
+      "deadline": "2025-08-26T18:42:01.412065",
+      "expected_revenue": 0.0
+    }
+  ],
+  "total_expected_revenue": 17655.0,
+  "action_summary": "4 critical, 4 high, 2 medium priority actions planned"
+}

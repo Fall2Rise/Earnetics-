@@ -1,0 +1,18 @@
+{
+  "api_keys": {
+    "openai": null,
+    "stripe": null,
+    "twitter": null,
+    "mailchimp": null
+  },
+  "thresholds": {
+    "min_daily_revenue": 50.0,
+    "max_ad_spend": 1000.0,
+    "profit_margin_target": 0.7
+  },
+  "automation_settings": {
+    "auto_scale": true,
+    "auto_optimize": true,
+    "auto_reinvest": true
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "T-1764613269",
+  "goal": "Add Shopify income stream",
+  "status": "planned",
+  "steps": [
+    "Identify relevant modules",
+    "Draft code changes",
+    "Verify against forbidden zones"
+  ]
+}

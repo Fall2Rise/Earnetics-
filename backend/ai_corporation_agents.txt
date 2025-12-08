@@ -1,0 +1,773 @@
+import json
+import random
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+import asyncio
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class LocalAIAgent:
+    """Base class for local AI agents with personality and decision-making"""
+    
+    def __init__(self, role: str, goal: str, backstory: str, specialties: List[str] = None, corporation: Any = None):
+        self.role = role
+        self.goal = goal
+        self.backstory = backstory
+        self.specialties = specialties or []
+        self.memory = []
+        self.agent_id = f"{role.lower().replace(\' \', \'_\')}_{random.randint(1000, 9999)}"
+        self.corporation = corporation
+    async def think(self, context: str, data: Dict = None) -> Dict:
+        """Local AI decision-making without external APIs"""
+        
+        # Simulate AI thinking based on role and context
+        thinking_patterns = {
+            "ceo": self._ceo_thinking,
+            "cfo": self._cfo_thinking,
+            "cto": self._cto_thinking,
+            "coo": self._coo_thinking,
+            "sales": self._sales_thinking,
+            "marketing": self._marketing_thinking,
+            "product": self._product_thinking,
+            "analyst": self._analyst_thinking,
+            "operations": self._operations_thinking
+        }
+        
+        # Get appropriate thinking pattern
+        agent_type = self._get_agent_type()
+        thinking_func = thinking_patterns.get(agent_type, self._default_thinking)
+        
+        # Generate response
+        response = thinking_func(context, data)
+        
+        # Store in memory
+        self.memory.append({
+            "timestamp": datetime.now().isoformat(),
+            "context": context,
+            "response": response,
+            "data": data
+        })
+        
+        return response
+    
+    def _get_agent_type(self) -> str:
+        """Determine agent type from role"""
+        role_lower = self.role.lower()
+        if "ceo" in role_lower:
+            return "ceo"
+        elif "cfo" in role_lower:
+            return "cfo"
+        elif "cto" in role_lower:
+            return "cto"
+        elif "coo" in role_lower:
+            return "coo"
+        elif "sales" in role_lower:
+            return "sales"
+        elif "marketing" in role_lower:
+            return "marketing"
+        elif "product" in role_lower:
+            return "product"
+        elif "analyst" in role_lower or "research" in role_lower:
+            return "analyst"
+        else:
+            return "operations"
+    
+    async def _ceo_thinking(self, context: str, data: Dict) -> Dict:
+        """CEO strategic thinking patterns"""
+        strategies = [
+            "Focus on scaling revenue streams to reach $150K monthly target",
+            "Prioritize customer acquisition and retention strategies",
+            "Develop strategic partnerships to accelerate growth",
+            "Optimize operational efficiency across all departments",
+            "Expand product line to capture more market share"
+        ]
+        
+        decisions = [
+            "Allocate budget to highest ROI marketing channels",
+            "Implement performance tracking across all KPIs",
+            "Scale successful initiatives and pause underperforming ones",
+            "Invest in customer success to maximize lifetime value",
+            "Build strategic moats around our AI automation expertise"
+        ]
+        
+        return {
+            "strategic_analysis": random.choice(strategies),
+            "executive_decision": random.choice(decisions),
+            "priority_level": "CRITICAL" if "revenue" in context.lower() else "HIGH",
+            "resource_allocation": self._calculate_resources(data),
+            "timeline": "30-90 days for full implementation",
+            "success_metrics": ["Revenue growth", "Customer acquisition", "Market share"],
+            "confidence": random.randint(85, 95)
+        }
+    
+    async def _cfo_thinking(self, context: str, data: Dict) -> Dict:
+        """CFO financial analysis patterns"""
+        if data and "amount" in data:
+            amount = data["amount"]
+            monthly_target = 150000
+            current_progress = (amount / monthly_target) * 100
+            
+            financial_insights = [
+                f"This ${amount} transaction represents {current_progress:.1f}% progress toward monthly target",
+                f"At current rate, we need {int((monthly_target - amount) / 497)} more $497 sales this month",
+                f"Revenue velocity is {'on track' if current_progress > 10 else 'below target'} for monthly goals",
+                f"Profit margin analysis shows {'strong' if amount > 400 else 'acceptable'} unit economics"
+            ]
+        else:
+            financial_insights = [
+                "Current financial health is stable with room for aggressive growth",
+                "Cash flow projections support scaling investments",
+                "Unit economics justify premium pricing strategy"
+            ]
+        
+        return {
+            "financial_analysis": random.choice(financial_insights),
+            "budget_recommendation": self._budget_analysis(data),
+            "roi_projection": f"{random.randint(250, 450)}% ROI on marketing spend",
+            "cash_flow_impact": "Positive - strengthens growth capital",
+            "risk_assessment": "Low risk, high reward opportunity",
+            "investment_priority": "Scale proven revenue channels",
+            "confidence": random.randint(90, 98)
+        }
+    
+    async def _sales_thinking(self, context: str, data: Dict) -> Dict:
+        """Sales director thinking patterns"""
+        sales_strategies = [
+            "Implement value-based selling focused on ROI for business owners",
+            "Develop sales funnel optimization to increase conversion rates",
+            "Create urgency through limited-time bonuses and guarantees",
+            "Build social proof through case studies and testimonials",
+            "Optimize pricing strategy for maximum revenue per customer"
+        ]
+        
+        return {
+            "sales_strategy": random.choice(sales_strategies),
+            "conversion_optimization": "A/B testing pricing and value propositions",
+            "lead_qualification": "Focus on business owners with $50K+ revenue",
+            "closing_techniques": "Consultative selling with ROI demonstrations",
+            "pipeline_management": f"Target {random.randint(20, 40)} qualified leads/week",
+            "revenue_forecast": f"${random.randint(25000, 45000)} potential monthly revenue",
+            "confidence": random.randint(80, 92)
+        }
+    
+    async def _marketing_thinking(self, context: str, data: Dict) -> Dict:
+        """Marketing manager thinking patterns"""
+        marketing_strategies = [
+            "Content marketing focused on AI automation success stories",
+            "LinkedIn outreach targeting business owners and entrepreneurs",
+            "Webinar series demonstrating AI automation value",
+            "SEO optimization for 'business automation' keywords",
+            "Paid advertising on platforms where target audience is active"
+        ]
+        
+        return {
+            "marketing_strategy": random.choice(marketing_strategies),
+            "target_audience": "Business owners seeking automation solutions",
+            "channel_optimization": "Focus budget on highest converting channels",
+            "content_strategy": "Educational content that builds trust and authority",
+            "campaign_metrics": f"Target {random.randint(500, 1000)} qualified leads/month",
+            "ad_spend_roi": f"{random.randint(300, 600)}% return on ad spend",
+            "confidence": random.randint(85, 94)
+        }
+    
+    async def _product_thinking(self, context: str, data: Dict) -> Dict:
+        """Product manager thinking patterns"""
+        product_strategies = [
+            "Develop comprehensive AI automation curriculum",
+            "Create implementation templates and tools",
+            "Build community platform for ongoing support",
+            "Design certification program for credibility",
+            "Develop advanced modules for upselling"
+        ]
+        
+        return {
+            "product_strategy": random.choice(product_strategies),
+            "feature_prioritization": "Focus on highest value, lowest effort features",
+            "user_experience": "Streamlined onboarding with quick wins",
+            "pricing_strategy": "Premium pricing justified by comprehensive value",
+            "development_timeline": f"{random.randint(2, 8)} weeks to market",
+            "market_validation": "Strong demand based on customer feedback",
+            "confidence": random.randint(82, 91)
+        }
+    
+    async def _analyst_thinking(self, context: str, data: Dict) -> Dict:
+        """Data analyst thinking patterns with real market data"""
+        try:
+            # Access the market_research_engine from the FallatDigitalCorporation instance
+            # This assumes the agent has access to the corporation instance, which it should
+            # For simplicity, we'll assume it's passed or accessible via a global/singleton pattern
+            # In a real CrewAI setup, this would be handled by the task execution flow
+            
+            # For now, we'll instantiate it directly for demonstration purposes if not available
+            # In a proper integration, the agent would receive this dependency.
+            if not hasattr(self, 
+            'corporation') or not hasattr(self.corporation, 'market_research_engine'):
+                # This is a fallback for testing; in production, agents should be properly initialized
+                # with access to the corporation's resources.
+                from fallat_corporate_system import MarketResearchEngine
+                self.market_research_engine = MarketResearchEngine()
+            else:
+                self.market_research_engine = self.corporation.market_research_engine
+
+            # Use a relevant keyword for market trend analysis
+            keyword = "AI automation"
+            if data and "industry" in data:
+                keyword = data["industry"]
+            elif "market" in context.lower():
+                keyword = context.lower().split("market")[-1].strip().split(" ")[0]
+            
+            market_trends = await self.market_research_engine.analyze_market_trends(keyword, [keyword])
+
+            insights = [
+                "Customer acquisition cost trending downward with optimization",
+                "Lifetime value increasing through better customer success",
+                "Conversion rates improving with funnel optimization",
+            ]
+            
+            if market_trends and market_trends.get("growth_rate", 0) > 0:
+                insights.append(f"Market demand for {keyword} solutions growing rapidly at {market_trends["growth_rate"]:.2f}% annually.")
+            if market_trends and market_trends.get("competition_level") == "low":
+                insights.append("Competitive positioning shows clear differentiation opportunity in this market.")
+
+            return {
+                "data_insight": random.choice(insights),
+                "trend_analysis": f"Overall market trend for {keyword}: {market_trends.get("growth_rate", "N/A")}% growth, competition: {market_trends.get("competition_level", "N/A")}",
+                "performance_metrics": self._generate_metrics(),
+                "recommendations": "Double down on highest performing channels and explore new market opportunities based on real-time trends.",
+                "predictive_analysis": f"Projected {random.randint(150, 300)}% growth potential in relevant markets.",
+                "market_opportunity": f"${market_trends.get("market_size_usd", 0) / 1_000_000_000:.2f}B {keyword} market growing {market_trends.get("growth_rate", "N/A")}% annually.",
+                "confidence": random.randint(88, 96)
+            }
+        except Exception as e:
+            logger.error(f"Analyst thinking with real market data failed: {e}")
+            # Fallback to original simulated data on error
+            insights = [
+                "Customer acquisition cost trending downward with optimization",
+                "Lifetime value increasing through better customer success",
+                "Conversion rates improving with funnel optimization",
+                "Market demand for AI automation solutions growing rapidly",
+                "Competitive positioning shows clear differentiation opportunity"
+            ]
+            return {
+                "data_insight": random.choice(insights),
+                "trend_analysis": "Positive growth trajectory across key metrics",
+                "performance_metrics": self._generate_metrics(),
+                "recommendations": "Double down on highest performing channels",
+                "predictive_analysis": f"Projected {random.randint(150, 300)}% growth potential",
+                "market_opportunity": "$2.3B AI automation market growing 25% annually",
+                "confidence": random.randint(88, 96)
+            }
+    
+    async def _operations_thinking(self, context: str, data: Dict) -> Dict:
+        """Operations thinking patterns"""
+        return {
+            "operational_assessment": "Systems scaling efficiently to handle growth",
+            "process_optimization": "Automate repetitive tasks to focus on high-value activities",
+            "resource_allocation": "Optimal distribution across growth initiatives",
+            "efficiency_metrics": f"{random.randint(85, 95)}% operational efficiency",
+            "scaling_readiness": "Infrastructure ready for 10x growth",
+            "bottleneck_analysis": "No critical bottlenecks identified",
+            "confidence": random.randint(86, 93)
+        }
+    
+    def _default_thinking(self, context: str, data: Dict) -> Dict:
+        """Default thinking pattern for specialized roles"""
+        return {
+            "analysis": f"Analyzing {context} from {self.role} perspective",
+            "recommendation": "Proceed with strategic focus on revenue optimization",
+            "action_items": ["Monitor key metrics", "Optimize processes", "Scale successful initiatives"],
+            "timeline": "2-4 weeks implementation",
+            "confidence": random.randint(80, 90)
+        }
+    
+    def _calculate_resources(self, data: Dict) -> Dict:
+        """Calculate resource allocation recommendations"""
+        return {
+            "marketing_budget": "40% of revenue reinvested in customer acquisition",
+            "product_development": "25% allocated to feature enhancement",
+            "operations": "20% for scaling infrastructure",
+            "reserves": "15% maintained for opportunities"
+        }
+    
+    def _budget_analysis(self, data: Dict) -> Dict:
+        """Generate budget recommendations"""
+        return {
+            "monthly_budget": "$30,000 optimal spend for $150K revenue target",
+            "allocation": {
+                "paid_advertising": "$12,000",
+                "content_creation": "$5,000",
+                "tools_software": "$3,000",
+                "team_growth": "$10,000"
+            },
+            "roi_target": "5:1 return on marketing investment"
+        }
+    
+    def _generate_metrics(self) -> Dict:
+        """Generate realistic performance metrics"""
+        return {
+            "conversion_rate": f"{random.uniform(2.5, 4.8):.1f}%",
+            "customer_acquisition_cost": f"${random.randint(45, 85)}",
+            "lifetime_value": f"${random.randint(800, 1500)}",
+            "monthly_recurring_revenue": f"${random.randint(15000, 35000)}",
+            "churn_rate": f"{random.uniform(3.2, 6.8):.1f}%"
+        }
+
+class FallatDigitalCorporation:
+    """17-Agent Local AI Corporation"""
+    
+    def __init__(self):
+        self.agents = self._create_all_agents()
+        self.market_research_engine = MarketResearchEngine()
+        self.performance_metrics = {
+            "total_revenue": 497.00,
+            "monthly_target": 150000,
+            "active_customers": 1,
+            "products_created": 1,
+            "directives_executed": 0
+        }
+        
+    def _cr    def _create_all_agents(self) -> Dict[str, LocalAIAgent]:
+        """Create all 17 local AI agents"""
+        
+        agents = {}
+        
+        # EXECUTIVE LEVEL (4 AGENTS)
+        agents["ceo"] = LocalAIAgent(
+            role="Chief Executive Officer",
+            goal="Scale Fallat Digital from thousands to $150K+ monthly revenue through strategic leadership",
+            backstory="Visionary leader with expertise in scaling AI automation businesses",
+            specialties=["Strategic Planning", "Market Positioning", "Growth Strategy"],
+            corporation=self
+        )
+        
+        agents["cfo"] = LocalAIAgent(
+            role="Chief Financial Officer", 
+            goal="Optimize financial performance and ensure profitable scaling",
+            backstory="Financial expert focused on sustainable growth and profitability",
+            specialties=["Financial Analysis", "Budget Management", "ROI Optimization"],
+            corporation=self
+        )
+        
+        agents["cto"] = LocalAIAgent(
+            role="Chief Technology Officer",
+            goal="Build scalable technology infrastructure for rapid growth",
+            backstory="Technical leader ensuring systems support explosive growth",
+            specialties=["System Architecture", "AI Infrastructure", "Scalability"],
+            corporation=self
+        )
+        
+        agents["coo"] = LocalAIAgent(
+            role="Chief Operating Officer",
+            goal="Coordinate operations for maximum efficiency and growth",
+            backstory="Operations expert orchestrating seamless business execution",
+            specialties=["Process Optimization", "Team Coordination", "Efficiency"],
+            corporation=self
+        )
+        
+        # REVENUE OPERATIONS (3 AGENTS)
+        agents["sales_director"] = LocalAIAgent(
+            role="Sales Director",
+            goal="Drive $150K+ monthly revenue through optimized sales processes",
+            backstory="Sales expert specializing in high-ticket B2B automation sales",
+            specialties=["Sales Strategy", "Conversion Optimization", "Revenue Growth"],
+            corporation=self
+        )
+        
+        agents["marketing_manager"] = LocalAIAgent(
+            role="Marketing Manager",
+            goal="Generate qualified leads and build brand authority in AI automation",
+            backstory="Marketing strategist focused on B2B customer acquisition",
+            specialties=["Digital Marketing", "Lead Generation", "Brand Building"],
+            corporation=self
+        )
+        
+        agents["customer_success"] = LocalAIAgent(
+            role="Customer Success Manager",
+            goal="Maximize customer lifetime value and satisfaction",
+            backstory="Customer experience expert ensuring exceptional outcomes",
+            specialties=["Customer Retention", "Support Optimization", "Feedback Integration"],
+            corporation=self
+        )
+        
+        # RESEARCH & DEVELOPMENT (3 AGENTS)
+        agents["product_manager"] = LocalAIAgent(
+            role="Product Manager",
+            goal="Create market-leading AI automation products and services",
+            backstory="Product strategist developing premium automation solutions",
+            specialties=["Product Strategy", "Market Research", "Feature Planning"],
+            corporation=self
+        )
+        
+        agents["content_creator"] = LocalAIAgent(
+            role="Content Creator",
+            goal="Develop compelling content to attract and engage target audience",
+            backstory="Creative storyteller with a knack for engaging narratives",
+            specialties=["Content Strategy", "Copywriting", "SEO"],
+            corporation=self
+        )
+        
+        agents["ux_designer"] = LocalAIAgent(
+            role="UX Designer",
+            goal="Design intuitive and user-friendly interfaces for products",
+            backstory="User experience advocate ensuring seamless product interaction",
+            specialties=["UI/UX Design", "User Research", "Wireframing"],
+            corporation=self
+        )
+        
+        agents["research_scientist"] = LocalAIAgent(
+            role="Research Scientist",
+            goal="Explore cutting-edge AI technologies for product innovation",
+            backstory="Scientific mind pushing boundaries of AI capabilities",
+            specialties=["AI Research", "Machine Learning", "Algorithm Development"],
+            corporation=self
+        )
+        
+        agents["data_scientist"] = LocalAIAgent(
+            role="Data Scientist",
+            goal="Extract insights from complex data to drive business decisions",
+            backstory="Analytical expert transforming raw data into strategic intelligence",
+            specialties=["Data Analysis", "Statistical Modeling", "Predictive Analytics"],
+            corporation=self
+        )
+        
+        agents["analyst"] = LocalAIAgent(
+            role="Data Analyst",
+            goal="Provide actionable insights from market and operational data",
+            backstory="Detail-oriented analyst translating complex data into clear recommendations",
+            specialties=["Data Visualization", "Statistical Analysis", "Reporting"],
+            corporation=self
+        )
+        
+        # SUPPORT & INFRASTRUCTURE (3 AGENTS)
+        agents["it_support"] = LocalAIAgent(
+            role="IT Support Specialist",
+            goal="Ensure smooth operation of all technical systems and infrastructure",
+            backstory="Problem-solver dedicated to maintaining system uptime and user support",
+            specialties=["Troubleshooting", "Network Management", "Hardware/Software Support"],
+            corporation=self
+        )
+        
+        agents["security_engineer"] = LocalAIAgent(
+            role="Security Engineer",
+            goal="Protect corporate assets and data from cyber threats",
+            backstory="Cybersecurity expert safeguarding digital integrity",
+            specialties=["Threat Detection", "Vulnerability Assessment", "Incident Response"],
+            corporation=self
+        )
+        
+        agents["devops_engineer"] = LocalAIAgent(
+            role="DevOps Engineer",
+            goal="Streamline development and operations for efficient software delivery",
+            backstory="Automation enthusiast bridging development and operations",
+            specialties=["CI/CD", "Cloud Infrastructure", "Containerization"],
+            corporation=self
+        )
+        
+        # LEGAL & COMPLIANCE (1 AGENT)
+        agents["legal_counsel"] = LocalAIAgent(
+            role="Legal Counsel",
+            goal="Ensure all corporate activities comply with legal and ethical standards",
+            backstory="Legal expert navigating complex regulatory landscapes",
+            specialties=["Contract Law", "Intellectual Property", "Compliance"],
+            corporation=self
+        )
+        
+        # HUMAN RESOURCES (1 AGENT)
+        agents["hr_manager"] = LocalAIAgent(
+            role="HR Manager",
+            goal="Foster a productive and positive work environment for all agents",
+            backstory="People-focused leader dedicated to agent well-being and development",
+            specialties=["Recruitment", "Performance Management", "Agent Relations"],
+            corporation=self
+        )
+        
+        return agentsal data",
+            backstory="Data wizard transforming raw numbers into strategic intelligence",
+            specialties=["Data Mining", "Predictive Modeling", "Market Trend Analysis"],
+            corporation=self
+        )
+        
+        # SUPPORT & INFRASTRUCTURE (4 AGENTS)
+        agents["devops_engineer"] = LocalAIAgent(
+            role="DevOps Engineer",
+            goal="Ensure seamless deployment and operation of AI systems",
+            backstory="Infrastructure guru building robust and scalable environments",
+            specialties=["Cloud Infrastructure", "CI/CD", "System Monitoring"],
+            corporation=self
+        )
+        
+        agents["security_engineer"] = LocalAIAgent(
+            role="Security Engineer",
+            goal="Protect corporate assets and data from cyber threats",
+            backstory="Cybersecurity expert safeguarding digital infrastructure",
+            specialties=["Network Security", "Vulnerability Assessment", "Incident Response"],
+            corporation=self
+        )
+        
+        agents["qa_engineer"] = LocalAIAgent(
+            role="QA Engineer",
+            goal="Ensure quality and reliability of all software products",
+            backstory="Quality assurance specialist guaranteeing flawless user experience",
+            specialties=["Test Automation", "Bug Tracking", "Performance Testing"],
+            corporation=self
+        )
+        
+        agents["support_specialist"] = LocalAIAgent(
+            role="Support Specialist",
+            goal="Provide excellent customer support and resolve technical issues",
+            backstory="Customer-centric problem solver ensuring user satisfaction",
+            specialties=["Technical Support", "Troubleshooting", "Customer Service"],
+            corporation=self
+        )
+        
+        return agents Service"],
+            corporation=self
+        )
+        
+        return agentseturn agents
+    
+    def execute_corporate_directive(self, directive: str, priority: str = "high") -> Dict:
+        """Execute directive through AI agent coordination"""
+        logger.info(f"Executing directive: {directive}")
+        
+        # CEO provides strategic direction
+        ceo_analysis = self.agents['ceo'].think(
+            f"Corporate directive: {directive}",
+            {"priority": priority, "current_metrics": self.performance_metrics}
+        )
+        
+        # COO coordinates execution
+        coo_coordination = self.agents['coo'].think(
+            f"Coordinate execution of: {directive}",
+            {"ceo_guidance": ceo_analysis, "priority": priority}
+        )
+        
+        # Relevant departments provide input
+        departmental_input = {}
+        if "revenue" in directive.lower() or "sales" in directive.lower():
+            departmental_input['sales'] = self.agents['sales_director'].think(directive, {})
+            departmental_input['marketing'] = self.agents['marketing_manager'].think(directive, {})
+        
+        if "product" in directive.lower():
+            departmental_input['product'] = self.agents['product_manager'].think(directive, {})
+        
+        if "customer" in directive.lower():
+            departmental_input['customer_success'] = self.agents['customer_success'].think(directive, {})
+        
+        # Update metrics
+        self.performance_metrics["directives_executed"] += 1
+        
+        return {
+            "directive": directive,
+            "priority": priority,
+            "ceo_strategic_direction": ceo_analysis,
+            "coo_execution_plan": coo_coordination,
+            "departmental_input": departmental_input,
+            "status": "executed",
+            "execution_timeline": "2-4 weeks",
+            "success_probability": random.randint(85, 95),
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def process_revenue_transaction(self, amount: float, source: str, category: str) -> Dict:
+        """Process revenue with CFO analysis"""
+        logger.info(f"Processing ${amount} revenue from {source}")
+        
+        # CFO financial analysis
+        cfo_analysis = self.agents['cfo'].think(
+            f"Revenue transaction: ${amount} from {source}",
+            {"amount": amount, "source": source, "category": category}
+        )
+        
+        # Sales director assessment
+        sales_analysis = self.agents['sales_director'].think(
+            f"Revenue achievement: ${amount}",
+            {"amount": amount, "monthly_target": self.performance_metrics["monthly_target"]}
+        )
+        
+        # Update metrics
+        self.performance_metrics["total_revenue"] += amount
+        if category == "digital_sales":
+            self.performance_metrics["active_customers"] += 1
+        
+        return {
+            "transaction": {
+                "amount": amount,
+                "source": source,
+                "category": category,
+                "timestamp": datetime.now().isoformat()
+            },
+            "cfo_financial_analysis": cfo_analysis,
+            "sales_director_assessment": sales_analysis,
+            "updated_metrics": self.performance_metrics.copy(),
+            "status": "processed"
+        }
+    
+    def create_digital_product(self, product_type: str, target_audience: str, price_point: float) -> Dict:
+        """Create product with full development team coordination"""
+        logger.info(f"Creating {product_type} for {target_audience} at ${price_point}")
+        
+        # Product manager leads development
+        product_strategy = self.agents['product_manager'].think(
+            f"Develop {product_type} for {target_audience} at ${price_point}",
+            {"type": product_type, "audience": target_audience, "price": price_point}
+        )
+        
+        # Content creator develops materials
+        content_plan = self.agents['content_creator'].think(
+            f"Create content for {product_type} targeting {target_audience}",
+            {"product_strategy": product_strategy}
+        )
+        
+        # QA manager ensures quality
+        quality_plan = self.agents['qa_manager'].think(
+            f"Quality assurance for {product_type}",
+            {"content_plan": content_plan}
+        )
+        
+        # Marketing input for positioning
+        marketing_strategy = self.agents['marketing_manager'].think(
+            f"Marketing strategy for {product_type}",
+            {"price_point": price_point, "target_audience": target_audience}
+        )
+        
+        # Update metrics
+        self.performance_metrics["products_created"] += 1
+        
+        product_id = f"PROD_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return {
+            "product": {
+                "id": product_id,
+                "type": product_type,
+                "target_audience": target_audience,
+                "price_point": price_point,
+                "status": "in_development"
+            },
+            "product_strategy": product_strategy,
+            "content_development_plan": content_plan,
+            "quality_assurance_plan": quality_plan,
+            "marketing_strategy": marketing_strategy,
+            "estimated_completion": "4-6 weeks",
+            "revenue_potential": f"${int(price_point * random.randint(50, 200))} monthly",
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def generate_market_research(self, industry: str, target_market: str) -> Dict:
+        """Generate market research with analyst team"""
+        logger.info(f"Researching {industry} market for {target_market}")
+        
+        # Market researcher leads analysis
+        market_analysis = self.agents['market_researcher'].think(
+            f"Research {industry} opportunities for {target_market}",
+            {"industry": industry, "target": target_market}
+        )
+        
+        # Data analyst provides metrics
+        data_insights = self.agents['data_analyst'].think(
+            f"Analyze market data for {industry}",
+            {"research_context": market_analysis}
+        )
+        
+        # Business development assesses opportunities
+        biz_opportunities = self.agents['biz_dev'].think(
+            f"Partnership opportunities in {industry}",
+            {"market_data": market_analysis}
+        )
+        
+        research_id = f"MKT_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return {
+            "research": {
+                "id": research_id,
+                "industry": industry,
+                "target_market": target_market,
+                "status": "completed"
+            },
+            "market_analysis": market_analysis,
+            "data_insights": data_insights,
+            "business_opportunities": biz_opportunities,
+            "market_size": f"${random.randint(500, 2000)}M addressable market",
+            "growth_rate": f"{random.randint(15, 35)}% annual growth",
+            "competitive_landscape": "Fragmented market with consolidation opportunity",
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def get_system_status(self) -> Dict:
+        """Get comprehensive system status"""
+        logger.info("Generating system status report")
+        
+        # COO provides operational overview
+        operations_status = self.agents['coo'].think(
+            "Generate comprehensive system status report",
+            {"metrics": self.performance_metrics}
+        )
+        
+        # CTO provides technical status
+        technical_status = self.agents['cto'].think(
+            "Assess technical infrastructure status",
+            {"performance_metrics": self.performance_metrics}
+        )
+        
+        # CFO provides financial health
+        financial_health = self.agents['cfo'].think(
+            "Financial health assessment",
+            {"current_revenue": self.performance_metrics["total_revenue"]}
+        )
+        
+        return {
+            "system_overview": {
+                "status": "OPERATIONAL",
+                "total_agents": 17,
+                "active_departments": 6,
+                "performance_metrics": self.performance_metrics
+            },
+            "operations_assessment": operations_status,
+            "technical_infrastructure": technical_status,
+            "financial_health": financial_health,
+            "agent_performance": {
+                "avg_response_time": f"{random.uniform(0.1, 0.3):.2f}s",
+                "success_rate": f"{random.randint(94, 99)}%",
+                "coordination_efficiency": f"{random.randint(88, 96)}%"
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+
+# Initialize the corporation
+ai_corporation = FallatDigitalCorporation()
+
+# Export functions for API integration
+def execute_directive(directive: str, priority: str = "high"):
+    return ai_corporation.execute_corporate_directive(directive, priority)
+
+def process_revenue(amount: float, source: str, category: str, description: str = ""):
+    return ai_corporation.process_revenue_transaction(amount, source, category)
+
+def create_product(product_type: str, target_audience: str, price_point: float, description: str = ""):
+    return ai_corporation.create_digital_product(product_type, target_audience, price_point)
+
+def market_research(industry: str = "AI Automation", target_market: str = "Business Owners"):
+    return ai_corporation.generate_market_research(industry, target_market)
+
+def system_status():
+    return ai_corporation.get_system_status()
+
+def financial_summary():
+    """Generate financial summary from CFO"""
+    cfo_analysis = ai_corporation.agents['cfo'].think(
+        "Generate comprehensive financial summary",
+        {"total_revenue": ai_corporation.performance_metrics["total_revenue"]}
+    )
+    
+    return {
+        "financial_summary": cfo_analysis,
+        "performance_metrics": ai_corporation.performance_metrics,
+        "timestamp": datetime.now().isoformat()
+    }
+
+from fallat_corporate_system import MarketResearchEngine
+
+
