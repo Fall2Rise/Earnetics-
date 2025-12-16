@@ -1,11 +1,33 @@
-﻿.venv/
+# ------------------------------
+# Python
+# ------------------------------
+.venv/
 __pycache__/
 *.py[cod]
+
+# ------------------------------
+# Logs
+# ------------------------------
 *.log
+
+# ------------------------------
+# Databases
+# ------------------------------
 *.sqlite3
 *.db
+
+# ------------------------------
+# Environment files (secrets)
+# Keep real env files ignored, allow example/sample
+# ------------------------------
 .env
 .env.*
+!.env.example
+!.env.sample
+
+# ------------------------------
+# Media / large binaries
+# ------------------------------
 *.mp4
 *.mov
 *.avi
@@ -16,3 +38,12 @@ __pycache__/
 *.so
 *.pt
 *.bin
+
+# ------------------------------
+# Temporary Environment Scripts & Logs
+# ------------------------------
+*_env.py
+env_*.txt
+key_search_result.txt
+find_key.py
+check_env.py
