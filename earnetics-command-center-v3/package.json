@@ -1,0 +1,19 @@
+{
+    "name": "earnetics-command-center-v3",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "npm run dev --workspace=packages/renderer",
+        "build": "npm run build --workspaces",
+        "start": "electron packages/main/dist/index.js",
+        "rebuild": "electron-rebuild"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "electron": "^28.0.0",
+        "vite": "^5.0.0",
+        "electron-rebuild": "^3.2.9"
+    }
+}

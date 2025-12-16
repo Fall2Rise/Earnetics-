@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "jsx": "react-jsx",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "baseUrl": ".",
+        "paths": {
+            "@earnetics/core": [
+                "packages/core/src"
+            ],
+            "@earnetics/ui": [
+                "packages/ui/src"
+            ],
+            "@earnetics/scene": [
+                "packages/scene/src"
+            ]
+        }
+    }
+}

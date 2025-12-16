@@ -1,49 +1,192 @@
-# ------------------------------
-# Python
-# ------------------------------
-.venv/
-__pycache__/
-*.py[cod]
+############################################
+# Fallat_CrewAI - Monorepo .gitignore
+# Windows + Python (FastAPI) + Node/React/Vite
+############################################
 
-# ------------------------------
-# Logs
-# ------------------------------
-*.log
-
-# ------------------------------
-# Databases
-# ------------------------------
-*.sqlite3
-*.db
-
-# ------------------------------
-# Environment files (secrets)
-# Keep real env files ignored, allow example/sample
-# ------------------------------
+###############
+# Secrets / Env
+###############
 .env
 .env.*
 !.env.example
 !.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+secrets/
+**/secrets/
+**/*secret*
+**/*apikey*
+**/*api_key*
+**/*token*
+**/*private*
 
-# ------------------------------
-# Media / large binaries
-# ------------------------------
-*.mp4
-*.mov
-*.avi
-*.zip
-*.whl
-*.dll
+#################
+# OS / Editor junk
+#################
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# VS Code / JetBrains / Visual Studio
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+*.VC.db
+*.VC.VC.opendb
+
+#######################
+# Logs / Temp / Backups
+#######################
+*.log
+logs/
+**/logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*.old
+*.orig
+
+# Your local status dumps / artifacts
+*_status.txt
+*_check.txt
+*_verification.txt
+config_status.txt
+env_check.txt
+env_status.txt
+env_verification.txt
+env_status.txt
+venv_files.txt
+
+########################
+# Python / Virtual Env
+########################
+__pycache__/
+*.py[cod]
+*$py.class
 *.pyd
-*.so
-*.pt
-*.bin
+.pytest_cache/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+.cache/
+*.egg-info/
+.eggs/
+dist/
+build/
 
-# ------------------------------
-# Temporary Environment Scripts & Logs
-# ------------------------------
-*_env.py
-env_*.txt
-key_search_result.txt
-find_key.py
-check_env.py
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+.conda/
+pip-wheel-metadata/
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+.profile_default/
+.ipython/
+
+########################
+# Node / Frontend builds
+########################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.npm/
+.eslintcache
+.stylelintcache
+
+# Vite / React / Next / general builds
+dist/
+build/
+out/
+.next/
+.svelte-kit/
+.nuxt/
+.cache/
+.parcel-cache/
+.vite/
+coverage/
+
+########################
+# Local Data / Databases
+########################
+# Local app data folders (your repo shows backend/data/)
+backend/data/
+**/data/
+**/local_data/
+**/local/
+
+# SQLite / DB files (keep schema/migrations in git, not the DB)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+
+# If you WANT to keep a specific DB tracked, you can unignore it like:
+# !backend/financial/corporate_operations.db
+
+########################
+# Python web frameworks
+########################
+# FastAPI/Starlette/Uvicorn
+*.pid
+uvicorn*.log
+
+########################
+# Packaging / Lock files
+########################
+# Keep lockfiles tracked (recommended) — do NOT ignore:
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+# poetry.lock
+# requirements.txt
+
+########################
+# Deployment / Platforms
+########################
+.vercel/
+.netlify/
+.firebase/
+.serverless/
+
+########################
+# Terraform / IaC (if used)
+########################
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+########################
+# Misc
+########################
+*.zip
+*.7z
+*.tar
+*.gz
+*.rar
+
