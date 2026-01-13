@@ -483,9 +483,9 @@ def get_dashboard_snapshot() -> Dict[str, Any]:
         # Pull latest Earnetics Core Income Engine vision (if available)
         vision = get_latest_earnetics_vision()
 
-        projected_monthly = 10000.0
-        open_directives = 10
-        next_due = "2025-11-13"
+        projected_monthly = 0.0
+        open_directives = 0
+        next_due = None
 
         if vision and vision.get("payload"):
             payload = vision["payload"] or {}

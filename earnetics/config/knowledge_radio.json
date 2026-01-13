@@ -1,0 +1,54 @@
+{
+  "enabled": true,
+  "cadence_minutes": 15,
+  "feeds": [
+    {
+      "feed_id": "gdelt",
+      "enabled": true,
+      "topics": ["ai tools", "affiliate programs", "platform policy changes", "creator monetization"],
+      "rate_limit_per_hour": 20
+    },
+    {
+      "feed_id": "rss",
+      "enabled": true,
+      "urls": [
+        "https://techcrunch.com/feed/",
+        "https://www.producthunt.com/feed",
+        "https://www.indiehackers.com/feed"
+      ],
+      "topics": ["startup", "saas", "revenue", "monetization"],
+      "rate_limit_per_hour": 30
+    },
+    {
+      "feed_id": "github_releases",
+      "enabled": true,
+      "repos": [
+        "openai/openai-python",
+        "langchain-ai/langchain",
+        "microsoft/semantic-kernel"
+      ],
+      "topics": ["ai tools", "developer tools", "api changes"],
+      "rate_limit_per_hour": 10
+    }
+  ],
+  "topics": [
+    "ai tools",
+    "affiliate programs",
+    "platform policy changes",
+    "creator monetization",
+    "startup",
+    "saas",
+    "revenue",
+    "monetization",
+    "developer tools",
+    "api changes"
+  ],
+  "throttle": {
+    "default_per_agent_per_hour": 3,
+    "max_global_per_hour": 60
+  },
+  "store": {
+    "auto_embed": true,
+    "tag_prefix": "radio:"
+  }
+}

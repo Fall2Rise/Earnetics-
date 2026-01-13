@@ -1,7 +1,14 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "noEmit": true
+        "noEmit": true,
+        "types": [
+            "vite/client",
+            "react",
+            "react-dom",
+            "three",
+            "@react-three/fiber"
+        ]
     },
     "include": [
         "src"

@@ -35,8 +35,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-export const listJobs = async (): Promise<SchedulerJob[]> => {
-  const response = await fetch(`${schedulerUrl}/jobs`);
+export const listJobs = async (signal?: AbortSignal): Promise<SchedulerJob[]> => {
+  const response = await fetch(`${schedulerUrl}/jobs`, { signal });
   const data = await handleResponse<{ jobs: SchedulerJob[] }>(response);
   return data.jobs;
 };

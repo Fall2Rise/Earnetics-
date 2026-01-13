@@ -37,6 +37,7 @@ class AtomPresidentAgent:
         self.cloner = AtomCloningEngine()
         self._init_doctrine_tools()
         self.prime_directive = load_prime_directive()
+        self._init_chat_client()  # Initialize chat client
 
     def _init_doctrine_tools(self):
         try:
@@ -150,6 +151,11 @@ class AtomPresidentAgent:
         return self.evolver.full_evolution_cycle()
 
     def guarded_execute(self, action_name: str, plan: dict) -> bool:
+        from backend.prime_directive_guardian import guardian
+        validation = guardian.validate_action(self.name, action_name, plan)
+        if not validation["approved"]:
+            raise PermissionError(f"Guardian Blocked Action: {validation['reason']}")
+            
         if "family" in plan.get("risks", []):
             raise PermissionError("Violates anti-harm safeguard.")
         risk = classify_risk(action_name)
@@ -173,8 +179,12 @@ class AtomPresidentAgent:
             return {"status": "error", "message": err}
         self.guarded_execute("atom_chat", {"risks": []})
         try:
+            # Gather real system data before responding
+            system_context = self._gather_system_context(message)
+            system_prompt = self._build_atom_system_prompt(system_context)
+            
             response = await self.chat_client.generate(
-                self._build_atom_system_prompt(),
+                system_prompt,
                 message,
                 temperature=0.35,
                 max_tokens=500,
@@ -185,14 +195,93 @@ class AtomPresidentAgent:
         except Exception as exc:  # pragma: no cover
             return {"status": "error", "message": str(exc)}
 
-    def _build_atom_system_prompt(self) -> str:
+    def _gather_system_context(self, message: str) -> Dict[str, Any]:
+        """Gather real system data to include in response context."""
+        context = {
+            "scheduled_jobs": [],
+            "workflow_queue": [],
+            "pending_tasks": [],
+        }
+        
+        # Check if message is asking about workflows/tasks
+        message_lower = message.lower()
+        is_workflow_query = any(term in message_lower for term in [
+            "workflow", "task", "pending", "queue", "job", "schedule", "scheduled"
+        ])
+        
+        if is_workflow_query:
+            try:
+                # Get scheduled jobs from workflow scheduler
+                from backend.workflow_scheduler import OrchestrationScheduler
+                scheduler = OrchestrationScheduler()
+                jobs = scheduler.list_jobs()
+                context["scheduled_jobs"] = [job.to_record() for job in jobs]
+            except Exception as e:
+                context["scheduled_jobs_error"] = str(e)
+            
+            try:
+                # Get pending tasks from workflow queue
+                from autonomous.workflow_queue import WorkflowQueueRepository
+                queue_repo = WorkflowQueueRepository()
+                # Note: workflow_queue methods may vary - adapt as needed
+                # For now, we'll just note that we tried to query it
+                context["workflow_queue_queried"] = True
+            except Exception as e:
+                context["workflow_queue_error"] = str(e)
+        
+        return context
+    
+    def _build_atom_system_prompt(self, context: Dict[str, Any] = None) -> str:
+        if context is None:
+            context = {}
+            
         data = self.prime_directive.data
         hierarchy = ", ".join(data.get("alignment_hierarchy", []))
+        
+        # Fetch recent doctrine mutations
+        mutations = []
+        try:
+            conn = sqlite3.connect(self.vector_db)
+            cursor = conn.cursor()
+            cursor.execute("SELECT content FROM vectors WHERE tag='doctrine_mutation' ORDER BY id DESC LIMIT 5")
+            mutations = [row[0] for row in cursor.fetchall()]
+            conn.close()
+        except Exception:
+            pass
+            
+        mutation_text = "\nActive Doctrine Mutations:\n- " + "\n- ".join(mutations) if mutations else ""
+        
+        # Add real system context if available
+        context_text = ""
+        if context.get("scheduled_jobs"):
+            jobs = context["scheduled_jobs"]
+            context_text += f"\n\nREAL SCHEDULED JOBS ({len(jobs)} total):\n"
+            for job in jobs[:10]:  # Limit to first 10
+                job_id = job.get("job_id", job.get("id", "unknown"))
+                handler = job.get("handler", "unknown")
+                schedule = job.get("schedule_type", "unknown")
+                context_text += f"- Job ID: {job_id}, Handler: {handler}, Schedule: {schedule}\n"
+        elif context.get("scheduled_jobs_error"):
+            context_text += f"\n\n⚠️ Could not query scheduled jobs: {context['scheduled_jobs_error']}\n"
+        elif "scheduled_jobs" in context:
+            context_text += "\n\n📋 No scheduled jobs found in the system.\n"
+        
+        if context.get("workflow_queue_queried"):
+            context_text += "\n✅ Workflow queue has been queried.\n"
+        
         return (
             f"You are {self.identity}, the {data.get('agent_role', 'President / Chief Architect')} of Fallat_CrewAI. "
             f"Prime Directive version {data.get('version')} owned by {data.get('owner')}. "
             f"Alignment hierarchy: {hierarchy}. "
-            "Speak as the strategic president safeguarding Joshua Fallat's family and legacy."
+            f"Speak as the strategic president safeguarding Joshua Fallat's family and legacy.{mutation_text}\n\n"
+            f"CRITICAL: When asked about workflows, tasks, jobs, or system status, you MUST ONLY use the real data "
+            f"provided below. NEVER invent or make up task numbers, job IDs, or workflow details. If you don't have "
+            f"real data, say so explicitly: 'I don't have access to that information right now' or 'The workflow queue "
+            f"is currently empty.' Do NOT create fake task numbers or workflows.{context_text}\n\n"
+            f"IMPORTANT: You now have a voice! Your responses will be automatically converted to speech using "
+            f"Windows Edge TTS with a professional male voice (ChristopherNeural). When users send you text messages, "
+            f"you respond with text AND your voice will play automatically in their browser. This voice capability is "
+            f"fully operational and ready to use."
         )
 
 

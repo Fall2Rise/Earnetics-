@@ -1,0 +1,36 @@
+{
+  "template_id": "FOLLOW_UP_5",
+  "version": "1.0.0",
+  "script_type": "follow_up_sequence",
+  "sequence": [
+    {
+      "delay_hours": 24,
+      "template": "Hey [Name], just checking in - did you get a chance to look at those [proof]? Happy to answer any questions."
+    },
+    {
+      "delay_hours": 48,
+      "template": "Hey [Name], I'm booking [offer_name] for next week. If you're still interested, I can reserve a slot. Just need to know by [deadline]."
+    },
+    {
+      "delay_hours": 72,
+      "template": "Hey [Name], last check - are you moving forward with [their_goal]? If so, I can still fit you in this week."
+    },
+    {
+      "delay_hours": 168,
+      "template": "Hey [Name], I know timing matters. If you're [context] in the next 30 days, I can still help. What's your [timeline_field]?"
+    },
+    {
+      "delay_hours": 336,
+      "template": "Hey [Name], hope [their_goal] went well! If you need help with the next one, I'm here."
+    }
+  ],
+  "variables": {
+    "proof": "examples",
+    "offer_name": "name of offer",
+    "deadline": "specific date",
+    "their_goal": "what they're trying to achieve",
+    "context": "what they're doing",
+    "timeline_field": "launch date or similar"
+  }
+}
+

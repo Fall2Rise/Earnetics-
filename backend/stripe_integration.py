@@ -443,17 +443,34 @@ class StripePaymentProcessor:
 
     def list_pending_payouts(self) -> List[Dict]:
         """List all pending payouts from the database."""
+        # Ensure schema is up to date first
+        self._ensure_tables()
+        
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                """
-                SELECT id, stripe_payout_id, amount, currency, status, 
-                       created_at, arrival_date, financial_op_id
+            cursor = conn.cursor()
+            
+            # Check which columns exist
+            cursor.execute("PRAGMA table_info(stripe_payouts)")
+            columns = {row[1] for row in cursor.fetchall()}
+            
+            # Build query based on available columns
+            select_fields = ["id", "stripe_payout_id", "amount", "status", "created_at"]
+            if "currency" in columns:
+                select_fields.append("currency")
+            if "arrival_date" in columns:
+                select_fields.append("arrival_date")
+            if "financial_op_id" in columns:
+                select_fields.append("financial_op_id")
+            
+            query = f"""
+                SELECT {', '.join(select_fields)}
                 FROM stripe_payouts 
                 WHERE status IN ('pending', 'in_transit')
                 ORDER BY created_at DESC
-                """
-            ).fetchall()
+            """
+            
+            rows = cursor.execute(query).fetchall()
 
         return [dict(row) for row in rows]
 
@@ -464,6 +481,9 @@ class StripePaymentProcessor:
         """
         if not self.stripe_config.get("configured"):
             return {"success": False, "error": "Stripe not configured"}
+
+        # Ensure schema is up to date before syncing
+        self._ensure_tables()
 
         pending = self.list_pending_payouts()
         updated = []
@@ -689,6 +709,58 @@ class StripePaymentProcessor:
                 )
                 """
             )
+            # Create stripe_payouts table with arrival_date column
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS stripe_payouts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    stripe_payout_id TEXT UNIQUE NOT NULL,
+                    financial_op_id INTEGER,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL DEFAULT 'usd',
+                    status TEXT NOT NULL,
+                    arrival_date TEXT,
+                    created_at TEXT NOT NULL,
+                    completed_at TEXT,
+                    FOREIGN KEY (financial_op_id) REFERENCES financial_operations(id)
+                )
+                """
+            )
+            # Ensure all required columns exist (for existing tables)
+            cursor.execute("PRAGMA table_info(stripe_payouts)")
+            existing_columns = {row[1] for row in cursor.fetchall()}
+            
+            # Add missing columns one by one
+            if "arrival_date" not in existing_columns:
+                try:
+                    cursor.execute("ALTER TABLE stripe_payouts ADD COLUMN arrival_date TEXT")
+                except sqlite3.OperationalError as e:
+                    if "duplicate column" not in str(e).lower():
+                        logger.warning(f"Could not add arrival_date column: {e}")
+            
+            if "currency" not in existing_columns:
+                try:
+                    cursor.execute("ALTER TABLE stripe_payouts ADD COLUMN currency TEXT DEFAULT 'usd'")
+                    # Update existing rows to have default currency
+                    cursor.execute("UPDATE stripe_payouts SET currency = 'usd' WHERE currency IS NULL")
+                except sqlite3.OperationalError as e:
+                    if "duplicate column" not in str(e).lower():
+                        logger.warning(f"Could not add currency column: {e}")
+            
+            if "financial_op_id" not in existing_columns:
+                try:
+                    cursor.execute("ALTER TABLE stripe_payouts ADD COLUMN financial_op_id INTEGER")
+                except sqlite3.OperationalError as e:
+                    if "duplicate column" not in str(e).lower():
+                        logger.warning(f"Could not add financial_op_id column: {e}")
+            
+            if "completed_at" not in existing_columns:
+                try:
+                    cursor.execute("ALTER TABLE stripe_payouts ADD COLUMN completed_at TEXT")
+                except sqlite3.OperationalError as e:
+                    if "duplicate column" not in str(e).lower():
+                        logger.warning(f"Could not add completed_at column: {e}")
+            
             conn.commit()
 
     def _get_mapping(self, product_id: int) -> Optional[Dict]:

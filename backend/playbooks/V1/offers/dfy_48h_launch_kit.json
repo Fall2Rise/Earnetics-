@@ -1,0 +1,22 @@
+{
+  "template_id": "DFY_48H_LAUNCH_KIT",
+  "version": "1.0.0",
+  "offer_name": "Done-For-You Launch Kit: 48-Hour Turnaround",
+  "deliverables": [
+    "1-page high-converting landing page (copy + design)",
+    "5-email nurture sequence (ready to import)",
+    "Stripe checkout link configured",
+    "30-day traffic plan (channel selection + posting schedule)",
+    "Launch day checklist + scripts",
+    "Basic tracking setup (UTM parameters + conversion pixels)"
+  ],
+  "price_points": [
+    {"amount": 497, "label": "Pay in Full", "deposit": false},
+    {"amount": 297, "label": "Deposit (50% now, 50% on delivery)", "deposit": true},
+    {"amount": 997, "label": "Premium: + Affiliate Setup + Email Automation", "deposit": false}
+  ],
+  "guarantee": "100% money-back if not delivered in 48 hours OR if launch doesn't generate at least 1 sale within 7 days of going live",
+  "fulfillment_time": "48 hours from requirements collection",
+  "target_buyer": "Course creator, coach, or consultant launching a new offer in next 30 days"
+}
+

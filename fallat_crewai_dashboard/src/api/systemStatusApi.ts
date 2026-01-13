@@ -1,50 +1,57 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, getAuthHeaders } from './config';
 
-export interface PerformanceMetricsSnapshot {
-  total_revenue?: number;
-  monthly_target?: number;
-  active_customers?: number;
-  products_created?: number;
-  directives_executed?: number;
-  last_updated?: string;
-  system_initialized?: string;
+export interface SystemMetrics {
+  uptime_hours: number;
+  total_requests: number;
+  connected_modules: number;
+  total_revenue: number;
 }
 
-export interface SystemOverview {
-  status?: string;
-  total_agents?: number;
-  active_departments?: number;
-  performance_metrics?: PerformanceMetricsSnapshot;
-}
-
-export interface AgentPerformanceSummary {
-  avg_response_time?: string;
-  success_rate?: string;
-  coordination_efficiency?: string;
-}
-
-export interface SystemHealth {
-  system_overview?: SystemOverview;
-  operations_assessment?: Record<string, unknown>;
-  technical_infrastructure?: Record<string, unknown>;
-  financial_health?: Record<string, unknown>;
-  agent_performance?: AgentPerformanceSummary;
-  timestamp?: string;
+export interface SystemServices {
+  vector_memory: string;
+  credential_vault: string;
 }
 
 export interface SystemStatusResponse {
-  status?: string;
-  system_health?: SystemHealth;
-  app_state?: Record<string, unknown>;
-  timestamp?: string;
+  status: string;
+  timestamp: string;
+  kill_switch_active: boolean;
+  safe_mode: boolean;
+  agent_paused: boolean;
+  mail_paused: boolean;
+  metrics: SystemMetrics;
+  services: SystemServices;
 }
 
 export const fetchSystemStatus = async (): Promise<SystemStatusResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/system_status`);
+  // Use explicit API_BASE_URL for reliability
+  const url = `${API_BASE_URL}/api/system/status`;
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: getAuthHeaders(),
+    });
+    
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    throw new Error(`Unable to load system status (${response.status})`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[SystemStatus] Error response:', errorText);
+      throw new Error(`Unable to load system status (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('[SystemStatus] Request timeout');
+      throw new Error('Request timeout - backend may be slow or unresponsive');
+    }
+    console.error('[SystemStatus] Fetch error:', error);
+    throw error;
   }
-
-  return response.json();
 };

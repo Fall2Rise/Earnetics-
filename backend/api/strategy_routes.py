@@ -1,78 +1,129 @@
-from __future__ import annotations
+"""API routes for Revenue Strategy Cell."""
 
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from backend.strategic_vision_assembly import StrategicVisionAssembly
+from backend.audit_log import log_event
+from backend.departments.revenue_strategy_cell import Dispatcher, StrategyRunner, StrategyStore
 
-# Single shared instance of the strategic engine
-assembly = StrategicVisionAssembly()
-
-router = APIRouter(
-    prefix="/api/strategy",
-    tags=["strategy"],
-)
+router = APIRouter(prefix="/strategy", tags=["strategy"])
 
 
-class StrategicVisionRequest(BaseModel):
-    """Request body for generating a strategic vision."""
-    time_horizon: str = "5_year"  # e.g. "12_months", "3_year", "5_year"
+class RunStrategyRequest(BaseModel):
+    cash_collected_to_date: float = 0.0
+    goal_deadline: str = "2026-01-31"
+    force: bool = False
+    notes: Optional[str] = None
 
 
-class StrategicDecisionRequest(BaseModel):
-    """Request body for coordinating a C-suite decision."""
-    decision_type: str = "market_expansion"  # e.g. "market_expansion", "technology_investment"
-    target_market: Optional[str] = None
-    payload: Dict[str, Any] = {}  # extra context (funnels, offers, etc.)
-
-
-@router.post("/vision/generate")
-async def generate_strategic_vision(req: StrategicVisionRequest) -> Dict[str, Any]:
-    """
-    Generate a comprehensive strategic vision for Earnetics.
-
-    Calls StrategicVisionAssembly.generate_comprehensive_strategic_vision()
-    and returns the full plan: goals, allocations, roadmap, metrics, etc.
-    """
+@router.post("/run")
+def run_strategy(request: RunStrategyRequest) -> Dict[str, Any]:
+    """Run one strategy generation cycle."""
     try:
-        vision = await assembly.generate_comprehensive_strategic_vision(req.time_horizon)
-        return vision
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to generate vision: {exc}") from exc
-
-
-@router.post("/decision/coordinate")
-async def coordinate_c_suite_decision(req: StrategicDecisionRequest) -> Dict[str, Any]:
-    """
-    Run a full C-suite coordination cycle for a strategic decision.
-
-    CEO: high-level decision
-    CFO: financial risk and budget view
-    COO: operational readiness
-    """
-    context: Dict[str, Any] = {"decision_type": req.decision_type}
-    if req.target_market:
-        context["target_market"] = req.target_market
-    if req.payload:
-        context.update(req.payload)
-
-    try:
-        result = await assembly.coordinate_c_suite_decision(context)
+        runner = StrategyRunner()
+        result = runner.run_cycle(
+            cash_collected_to_date=request.cash_collected_to_date,
+            goal_deadline=request.goal_deadline,
+            force=request.force,
+            notes=request.notes,
+        )
+        
+        # If successful, dispatch tasks
+        if result.get("status") == "completed" and "output" in result:
+            dispatcher = Dispatcher()
+            dispatch_result = dispatcher.dispatch_run(
+                result["run_id"],
+                result["output"].get("dispatch_packets", {}),
+                force=request.force,
+            )
+            result["dispatch_result"] = dispatch_result
+        
+        log_event(
+            "strategy.run",
+            agent="strategy_cell",
+            message=f"Strategy cycle run: {result.get('run_id')}",
+            details={"status": result.get("status"), "duration_ms": result.get("duration_ms")},
+        )
+        
         return result
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to coordinate decision: {exc}") from exc
+    except Exception as e:
+        log_event(
+            "strategy.run",
+            agent="strategy_cell",
+            status="error",
+            message=str(e),
+        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/dashboard")
-def strategic_dashboard() -> Dict[str, Any]:
-    """
-    High-level strategic dashboard for Earnetics.
+@router.get("/latest")
+def get_latest_strategy() -> Dict[str, Any]:
+    """Get the latest strategy run."""
+    store = StrategyStore()
+    latest = store.get_latest_run()
+    
+    if not latest:
+        raise HTTPException(status_code=404, detail="No strategy runs found")
+    
+    import json
+    output_json = json.loads(latest["output_json"])
+    
+    return {
+        "run_id": latest["run_id"],
+        "created_at": latest["created_at"],
+        "status": latest["status"],
+        "output": output_json,
+    }
 
-    Aggregates CEO/CFO/COO views into one payload.
-    """
-    try:
-        return assembly.get_strategic_vision_dashboard()
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to load strategic dashboard: {exc}") from exc
+
+@router.get("/runs")
+def list_runs(limit: int = 20) -> Dict[str, Any]:
+    """List recent strategy runs."""
+    store = StrategyStore()
+    runs = store.list_runs(limit=limit)
+    
+    return {
+        "runs": runs,
+        "count": len(runs),
+    }
+
+
+@router.get("/plays")
+def get_plays(run_id: Optional[str] = None) -> Dict[str, Any]:
+    """Get play cards, optionally filtered by run_id."""
+    store = StrategyStore()
+    plays = store.get_plays(run_id=run_id)
+    
+    return {
+        "plays": plays,
+        "count": len(plays),
+    }
+
+
+@router.get("/experiments")
+def get_experiments(run_id: Optional[str] = None) -> Dict[str, Any]:
+    """Get experiments, optionally filtered by run_id."""
+    store = StrategyStore()
+    experiments = store.get_experiments(run_id=run_id)
+    
+    return {
+        "experiments": experiments,
+        "count": len(experiments),
+    }
+
+
+@router.get("/dispatch")
+def get_dispatch_packets(
+    run_id: Optional[str] = None, department: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get dispatch packets, optionally filtered."""
+    store = StrategyStore()
+    packets = store.get_dispatch_packets(run_id=run_id, department=department)
+    
+    return {
+        "packets": packets,
+        "count": len(packets),
+    }

@@ -6,7 +6,7 @@ export const ParticleBackground: React.FC = () => {
   const particlesRef = useRef<THREE.Points>(null);
   const gridRef = useRef<THREE.LineSegments>(null);
 
-  const particleCount = 2000;
+  const particleCount = 5000; // Increased for more impressive effect
   
   const { positions, colors } = useMemo(() => {
     const positions = new Float32Array(particleCount * 3);
@@ -102,10 +102,10 @@ export const ParticleBackground: React.FC = () => {
           />
         </bufferGeometry>
         <pointsMaterial
-          size={0.15}
+          size={0.2}
           vertexColors
           transparent
-          opacity={0.6}
+          opacity={0.8}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
           depthWrite={false}

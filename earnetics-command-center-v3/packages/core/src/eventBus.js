@@ -94,5 +94,15 @@ export class EventBus {
         ws.onerror = (err) => {
             console.error('Backend WebSocket error:', err);
         };
+        this.ws = ws;
+    }
+    ws = null;
+    sendCommand(type, payload) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type, payload }));
+        }
+        else {
+            console.warn('Cannot send command: Backend WebSocket not connected');
+        }
     }
 }

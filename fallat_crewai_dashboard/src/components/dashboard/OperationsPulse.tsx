@@ -7,6 +7,7 @@ import {
   fetchOperationsMetrics,
 } from '../../api/operationsApi';
 import { toStatusLabel, toStatusTone } from '../../utils/status';
+import { MetricDetailModal } from './MetricDetailModal';
 
 interface OperationsPulseProps {
   compact?: boolean;
@@ -34,8 +35,10 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
   const [cycleStatus, setCycleStatus] = useState<string | null>(null);
   const [runningCycle, setRunningCycle] = useState<boolean>(false);
   const mountedRef = useRef(true);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const refresh = useCallback(async () => {
+    // Debug logging removed to reduce request spam
     setLoading(true);
     try {
       const data = await fetchOperationsMetrics();
@@ -53,9 +56,23 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
   }, []);
 
   useEffect(() => {
-    void refresh();
+    mountedRef.current = true;
+    const abortController = new AbortController();
+    void refresh(abortController.signal);
+    
+    // Optimized: Poll every 15 seconds instead of 5 to reduce server load
+    // Real-time updates should come via WebSocket when available
+    const intervalId = setInterval(() => {
+      if (mountedRef.current) {
+        const intervalAbortController = new AbortController();
+        void refresh(intervalAbortController.signal);
+      }
+    }, 15000); // Increased from 5000ms to 15000ms for better efficiency
+    
     return () => {
       mountedRef.current = false;
+      clearInterval(intervalId);
+      abortController.abort(); // Cancel in-flight requests on unmount
     };
   }, [refresh]);
 
@@ -101,8 +118,8 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
     <section className="operations-panel">
       <header className="panel-header">
         <div>
-          <h3>Operations Pulse</h3>
-          <span>Real-time activity from automation scheduler</span>
+          <h3>💓 Operations Pulse</h3>
+          <span className="operations-panel__subtitle">Real-time activity monitoring from automation scheduler and agent operations</span>
         </div>
         <div className="panel-header__actions">
           {workerStatus && <span className={`status-pill status-pill--${workerTone}`}>{workerLabel}</span>}
@@ -114,10 +131,30 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
 
       {error && <p className="panel-error">{error}</p>}
 
+      <div className="operations-panel__info">
+        <p className="text-sm text-indigo-200/80 mb-4 p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20">
+          <strong>💡 How it works:</strong> Monitor real-time operations, pending workflows, and agent activity. 
+          Click on "Pending workflows" to see detailed task information. 
+          Use "Run Autonomous Cycle" to trigger a full agent execution cycle manually.
+        </p>
+      </div>
+
       <div className="operations-summary">
-        <div className="operations-summary__item">
+        <div
+          className="operations-summary__item cursor-pointer hover:bg-slate-800/70 transition-colors"
+          onClick={() => setModalOpen(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setModalOpen(true);
+            }
+          }}
+        >
           <span>Pending workflows</span>
           <strong>{queue.pending}</strong>
+          <span className="text-[10px] text-cyan-400/50 mt-1">Click to view details</span>
         </div>
         <div className="operations-summary__item">
           <span>At risk</span>
@@ -128,6 +165,13 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
           <strong>{queue.overdue}</strong>
         </div>
       </div>
+
+      <MetricDetailModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        metricType="workflows"
+        title="Pending Workflows"
+      />
 
       {enableAutonomyControls && (
         <div className="operations-controls">

@@ -1,0 +1,44 @@
+﻿../scene/src/Agent3D.tsx(38,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(39,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(45,17): error TS2339: Property 'sphereGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(46,17): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(55,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(56,21): error TS2339: Property 'torusGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(57,21): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(58,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(59,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Agent3D.tsx(86,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(125,45): error TS2345: Argument of type 'THREE.Vector3' is not assignable to parameter of type 'import("C:/AI_Projects/Fallat_CrewAI/earnetics-command-center-v3/node_modules/@types/three/src/math/Vector3").Vector3'.
+  Types of property 'addScaledVector' are incompatible.
+    Type '(v: THREE.Vector3, s: number) => THREE.Vector3' is not assignable to type '(v: import("C:/AI_Projects/Fallat_CrewAI/earnetics-command-center-v3/node_modules/@types/three/src/math/Vector3").Vector3, s: number) => import("C:/AI_Projects/Fallat_CrewAI/earnetics-command-center-v3/node_modules/@types/three/src/math/Vector3").Vector3'.
+      Types of parameters 'v' and 'v' are incompatible.
+        Type 'Vector3' is missing the following properties from type 'Vector3': lengthManhattan, distanceToManhattan
+../scene/src/OpsRoom.tsx(138,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(141,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(142,21): error TS2339: Property 'octahedronGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(143,21): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(144,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(145,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(146,21): error TS2339: Property 'sphereGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(147,21): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(148,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(159,21): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(185,21): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(188,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(226,17): error TS2339: Property 'ambientLight' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(227,17): error TS2339: Property 'pointLight' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/OpsRoom.tsx(228,17): error TS2339: Property 'spotLight' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(14,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(16,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(17,17): error TS2339: Property 'planeGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(18,17): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(24,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(52,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(53,21): error TS2339: Property 'boxGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(54,21): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(55,17): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(59,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(60,17): error TS2339: Property 'cylinderGeometry' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(61,17): error TS2339: Property 'meshStandardMaterial' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(66,13): error TS2339: Property 'mesh' does not exist on type 'JSX.IntrinsicElements'.
+../scene/src/Zone3D.tsx(67,9): error TS2339: Property 'group' does not exist on type 'JSX.IntrinsicElements'.

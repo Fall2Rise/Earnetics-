@@ -26,22 +26,35 @@ export const ApprovalCenter: React.FC = () => {
     return Array.from(unique);
   }, [approvals]);
 
-  const loadApprovals = useCallback(async () => {
+  const loadApprovals = useCallback(async (abortSignal?: AbortSignal) => {
     setLoading(true);
     try {
-      const data = await listApprovals(filter.status || undefined, limit);
+      const data = await listApprovals(filter.status || undefined, limit, abortSignal);
+      if (abortSignal?.aborted) return; // Don't update state if request was cancelled
       const filtered = filter.handler ? data.filter((item) => item.handler === filter.handler) : data;
       setApprovals(filtered);
       setError(null);
     } catch (err) {
+      if (abortSignal?.aborted) return; // Ignore errors from cancelled requests
       setError(err instanceof Error ? err.message : 'Failed to load approvals');
     } finally {
-      setLoading(false);
+      if (!abortSignal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [filter.status, filter.handler, limit]);
 
+  // Debounce filter changes to avoid excessive API calls
   useEffect(() => {
-    void loadApprovals();
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      void loadApprovals(abortController.signal);
+    }, 300); // 300ms debounce for filter changes
+    
+    return () => {
+      clearTimeout(timeoutId);
+      abortController.abort(); // Cancel in-flight requests
+    };
   }, [loadApprovals]);
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -53,7 +66,7 @@ export const ApprovalCenter: React.FC = () => {
   };
 
   const handleLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLimit(Number(event.target.value));
+    setLimit(Number.parseInt(event.target.value, 10));
   };
 
   const handleApprove = async (requestId: number) => {
@@ -83,11 +96,11 @@ export const ApprovalCenter: React.FC = () => {
   };
 
   return (
-    <div className="approval-center glass-panel">
+    <div className="approval-center">
       <header className="panel-header">
         <div>
-          <h3>Approval Queue</h3>
-          <span>Review and approve high-impact actions</span>
+          <h3>✅ Approval Queue</h3>
+          <span className="approval-center__subtitle">Review and approve high-impact actions that require human oversight</span>
         </div>
         <div className="panel-header__actions">
           <button type="button" className="refresh-button" onClick={() => void loadApprovals()} disabled={loading}>
@@ -97,6 +110,14 @@ export const ApprovalCenter: React.FC = () => {
       </header>
 
       {error && <p className="panel-error">{error}</p>}
+
+      <div className="approval-center__info">
+        <p className="text-sm text-indigo-200/80 mb-4 p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20">
+          <strong>💡 How it works:</strong> Agents request approval for high-impact actions (large payments, major changes, etc.). 
+          Review the details, expected impact, and context before approving or rejecting. 
+          Your decisions help agents learn and improve their decision-making.
+        </p>
+      </div>
 
       <div className="approval-filters">
         <label>
@@ -143,16 +164,49 @@ export const ApprovalCenter: React.FC = () => {
             <article key={request.id} className={`approval-card approval-card--${request.status}`}>
               <header>
                 <div>
-                  <h4>{request.handler}</h4>
-                  <span>ID: {request.id}</span>
-                  <span>Job: {request.job_id}</span>
+                  <h4>{request.description || request.handler}</h4>
+                  <div className="approval-card__meta-info">
+                    <span>Handler: {request.handler}</span>
+                    <span>ID: {request.id}</span>
+                    <span>Job: {request.job_id}</span>
+                  </div>
                 </div>
                 <div className="approval-card__meta">
                   <span>{new Date(request.created_at).toLocaleString()}</span>
                   <span className={`badge badge--${request.status === 'error' ? 'error' : 'ok'}`}>{request.status}</span>
                 </div>
               </header>
-              <pre>{JSON.stringify(request.payload, null, 2)}</pre>
+              
+              {/* Description Section */}
+              <section className="approval-card__description">
+                {request.description && (
+                  <div className="approval-card__field">
+                    <strong>📋 What needs approval:</strong>
+                    <p>{request.description}</p>
+                  </div>
+                )}
+                
+                {request.context && (
+                  <div className="approval-card__field">
+                    <strong>ℹ️ Context:</strong>
+                    <p>{request.context}</p>
+                  </div>
+                )}
+                
+                {request.impact && (
+                  <div className="approval-card__field">
+                    <strong>⚡ Expected Impact:</strong>
+                    <p>{request.impact}</p>
+                  </div>
+                )}
+              </section>
+              
+              {/* Payload Details (collapsible) */}
+              <details className="approval-card__payload">
+                <summary>📦 Technical Details (Click to expand)</summary>
+                <pre>{JSON.stringify(request.payload, null, 2)}</pre>
+              </details>
+              
               {request.message && <p className="approval-card__message">{request.message}</p>}
               <footer>
                 <div>
@@ -162,10 +216,10 @@ export const ApprovalCenter: React.FC = () => {
                 {request.status === 'pending' && (
                   <div className="approval-card__actions">
                     <button type="button" className="primary-button" onClick={() => void handleApprove(request.id)} disabled={actionLoading}>
-                      Approve
+                      ✅ Approve
                     </button>
                     <button type="button" className="refresh-button" onClick={() => void handleReject(request.id)} disabled={actionLoading}>
-                      Reject
+                      ❌ Reject
                     </button>
                   </div>
                 )}

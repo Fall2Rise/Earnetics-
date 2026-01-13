@@ -11,6 +11,12 @@ const NAV_ITEMS: Array<{ label: string; section: DashboardSection }> = [
   { label: 'Agents', section: 'agents' },
   { label: 'Workflows', section: 'workflows' },
   { label: 'Intelligence', section: 'intelligence' },
+  { label: 'Financial', section: 'financial' },
+  { label: 'Security', section: 'security' },
+  { label: 'Leads', section: 'leads' },
+  { label: 'Marketing', section: 'marketing' },
+  { label: 'Subscribers', section: 'subscribers' },
+  { label: 'Head Office', section: 'head-office' },
 ];
 
 export const Header: React.FC<HeaderProps> = ({ activeSection, onSectionChange }) => (

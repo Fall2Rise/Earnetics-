@@ -1,0 +1,17 @@
+{
+  "template_id": "DM_SCRIPT",
+  "version": "1.0.0",
+  "script_type": "dm",
+  "template": "Hey [Name], saw you're [context]. I help [target_buyer] [value_proposition] in [timeframe]. [specific_benefit]. Want to see [proof]? (Takes [time])",
+  "variables": {
+    "context": "what they're doing/launching",
+    "target_buyer": "who you help",
+    "value_proposition": "what you do",
+    "timeframe": "how fast",
+    "specific_benefit": "key benefit",
+    "proof": "examples/case studies",
+    "time": "2 min"
+  },
+  "example": "Hey [Name], saw you're launching a course. I help course creators get launch-ready in 48 hours: landing page, email sequence, traffic plan, checkout setup. Done-for-you. Want to see 2 examples? (Takes 2 min)"
+}
+

@@ -8,6 +8,10 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
+        "types": [
+            "three",
+            "@react-three/fiber"
+        ],
         "baseUrl": ".",
         "paths": {
             "@earnetics/core": [

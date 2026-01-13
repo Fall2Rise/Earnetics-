@@ -6,8 +6,8 @@ export interface NotificationSettings {
   desktop_log: boolean;
 }
 
-export const getNotificationSettings = async (): Promise<NotificationSettings> => {
-  const response = await fetch(`${API_BASE_URL}/api/notifications/settings`);
+export const getNotificationSettings = async (signal?: AbortSignal): Promise<NotificationSettings> => {
+  const response = await fetch(`${API_BASE_URL}/api/notifications/settings`, { signal });
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || response.statusText);

@@ -41,6 +41,12 @@ export const ModelManager: React.FC = () => {
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError(null);
+    if (!form.name || !form.version) {
+      setError('Name and version are required.');
+      return;
+    }
+    setLoading(true);
     try {
       await registerModel({
         name: form.name,
@@ -53,15 +59,17 @@ export const ModelManager: React.FC = () => {
       await loadModels();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to register model');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className='model-manager glass-panel'>
+    <div className='model-manager'>
       <header className='panel-header'>
         <div>
-          <h3>Model Registry</h3>
-          <span>Manage embedding and LLM models</span>
+          <h3>🤖 Model Registry</h3>
+          <span className="model-manager__subtitle">Manage embedding and LLM models for agent operations</span>
         </div>
         <button type='button' className='refresh-button' onClick={() => void loadModels()} disabled={loading}>
           {loading ? 'Refreshing...' : 'Reload'}
@@ -69,6 +77,13 @@ export const ModelManager: React.FC = () => {
       </header>
 
       {error && <p className='panel-error'>{error}</p>}
+
+      <div className="model-manager__info">
+        <p className="text-sm text-indigo-200/80 mb-4 p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20">
+          <strong>💡 How it works:</strong> Register and activate LLM and embedding models for agent use. 
+          Models can be local files or remote services. Activate models to make them available for agent operations.
+        </p>
+      </div>
 
       <section className='model-register'>
         <h4>Register Model</h4>

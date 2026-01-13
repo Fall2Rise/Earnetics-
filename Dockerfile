@@ -1,6 +1,15 @@
 # AI REVENUE COMMAND CENTER - DOCKERFILE
 # Production-ready container for real-world operations
 
+# --- STAGE 1: Build Frontend ---
+FROM node:20-slim AS build-stage
+WORKDIR /build
+COPY fallat_crewai_dashboard/package*.json ./
+RUN npm install
+COPY fallat_crewai_dashboard/ ./
+RUN npm run build
+
+# --- STAGE 2: Final Image ---
 FROM python:3.11-slim
 
 # Set environment variables
@@ -18,8 +27,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Create data directory for persistent database storage
-RUN mkdir -p /data /app/logs && \
-    chown -R 1000:1000 /data /app/logs
+RUN mkdir -p /data /app/logs /app/static/dashboard && \
+    chown -R 1000:1000 /data /app/logs /app/static/dashboard
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -38,6 +47,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
+# Copy built frontend from build-stage
+COPY --from=build-stage /build/dist /app/static/dashboard
+
 # Create non-root user for security
 RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \
     chown -R appuser:appuser /app /data
@@ -50,7 +62,6 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8080
 
-# Command to run the application
 # Command to run the application
 CMD ["gunicorn", "backend.main_server:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]
 

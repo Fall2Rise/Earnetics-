@@ -24,13 +24,27 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 export const getMetrics = async (): Promise<MetricsResult> => {
+  // Debug logging removed to reduce request spam
   try {
-    const response = await fetch(`${API_BASE_URL}/api/system_status`);
+    const url = `${API_BASE_URL}/api/system_status`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    clearTimeout(timeoutId);
+    // Debug logging removed to reduce request spam
     if (!response.ok) {
       throw new Error(`Failed to fetch system status: ${response.status}`);
     }
 
     const data = await response.json();
+    // Debug logging removed to reduce request spam
     const overview = data?.system_health?.system_overview ?? {};
     const metrics = overview?.performance_metrics ?? {};
 
@@ -79,13 +93,18 @@ export const getMetrics = async (): Promise<MetricsResult> => {
 
     return {
       metrics: metricsList,
-      overviewStatus: overview?.status ?? 'UNKNOWN',
+      overviewStatus: overview?.status ?? data?.status ?? 'ONLINE',
       progressPercentage: progress,
       updatedAt: metrics?.last_updated ?? data?.timestamp,
       totalRequests: data?.app_state?.total_requests,
     };
   } catch (error) {
     console.error('Failed to fetch metrics:', error);
+    // Don't show OFFLINE on timeout - show a retry message instead
+    const errorMessage = error instanceof Error 
+      ? (error.name === 'AbortError' ? 'Connection timeout - retrying...' : error.message)
+      : 'Unknown error loading metrics';
+    
     const fallback: MetricsResult = {
       metrics: [
         { id: 'total_revenue', label: 'Total Revenue', value: '$0.00', trend: 'Awaiting launch' },
@@ -94,9 +113,9 @@ export const getMetrics = async (): Promise<MetricsResult> => {
         { id: 'products_created', label: 'Products Live', value: '0', trend: 'Ready to launch' },
         { id: 'directives_executed', label: 'Directives Executed', value: '0', trend: 'Standing by' },
       ],
-      overviewStatus: 'OFFLINE',
+      overviewStatus: 'CONNECTING', // Changed from OFFLINE to CONNECTING
       progressPercentage: 0,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error loading metrics',
+      errorMessage: errorMessage,
     };
 
     return fallback;

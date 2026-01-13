@@ -67,12 +67,14 @@ export interface OperationsMetricsResponse {
   email_marketing?: EmailCampaignSnapshot;
 }
 
-export const fetchOperationsMetrics = async (): Promise<OperationsMetricsResponse> => {
-  const response = await fetch(`${API_BASE_URL}/metrics`);
+export const fetchOperationsMetrics = async (signal?: AbortSignal): Promise<OperationsMetricsResponse> => {
+  // Debug logging removed to reduce request spam
+  const response = await fetch(`${API_BASE_URL}/metrics`, { signal });
 
   if (!response.ok) {
     throw new Error(`Unable to load operational metrics (${response.status})`);
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 };

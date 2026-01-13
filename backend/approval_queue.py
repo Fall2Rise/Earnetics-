@@ -25,6 +25,9 @@ class ApprovalRequest:
     job_id: str
     handler: str
     payload: Dict[str, Any]
+    description: Optional[str] = None  # Human-readable description of what needs approval
+    context: Optional[str] = None  # Additional context about why this needs approval
+    impact: Optional[str] = None  # Expected impact or outcome
     status: str = "pending"
     created_at: str = _utcnow()
     decided_at: Optional[str] = None
@@ -38,11 +41,14 @@ class ApprovalRequest:
             job_id=row["job_id"],
             handler=row["handler"],
             payload=json.loads(row["payload"] or "{}"),
+            description=row.get("description"),
+            context=row.get("context"),
+            impact=row.get("impact"),
             status=row["status"],
             created_at=row["created_at"],
-            decided_at=row["decided_at"],
-            decision=row["decision"],
-            message=row["message"],
+            decided_at=row.get("decided_at"),
+            decision=row.get("decision"),
+            message=row.get("message"),
         )
 
     def to_record(self) -> Dict[str, Any]:
@@ -73,6 +79,9 @@ class ApprovalQueue:
                     job_id TEXT NOT NULL,
                     handler TEXT NOT NULL,
                     payload TEXT NOT NULL,
+                    description TEXT,
+                    context TEXT,
+                    impact TEXT,
                     status TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     decided_at TEXT,
@@ -81,28 +90,106 @@ class ApprovalQueue:
                 )
                 """
             )
+            # Add new columns if they don't exist
+            cur.execute("PRAGMA table_info(approval_requests)")
+            columns = {row[1] for row in cur.fetchall()}
+            if "description" not in columns:
+                cur.execute("ALTER TABLE approval_requests ADD COLUMN description TEXT")
+            if "context" not in columns:
+                cur.execute("ALTER TABLE approval_requests ADD COLUMN context TEXT")
+            if "impact" not in columns:
+                cur.execute("ALTER TABLE approval_requests ADD COLUMN impact TEXT")
             conn.commit()
 
-    def create_request(self, job_id: str, handler: str, payload: Dict[str, Any]) -> ApprovalRequest:
-        request = ApprovalRequest(id=None, job_id=job_id, handler=handler, payload=payload)
+    def create_request(
+        self, 
+        job_id: str, 
+        handler: str, 
+        payload: Dict[str, Any],
+        description: Optional[str] = None,
+        context: Optional[str] = None,
+        impact: Optional[str] = None
+    ) -> ApprovalRequest:
+        # Generate description from handler knowledge base if not provided
+        if not description:
+            description = self._get_handler_description(handler, payload)
+        if not context:
+            context = self._get_handler_context(handler, payload)
+        if not impact:
+            impact = self._get_handler_impact(handler, payload)
+            
+        request = ApprovalRequest(
+            id=None, 
+            job_id=job_id, 
+            handler=handler, 
+            payload=payload,
+            description=description,
+            context=context,
+            impact=impact
+        )
         with self._connection() as conn:
             cur = conn.cursor()
             cur.execute(
                 """
-                INSERT INTO approval_requests (job_id, handler, payload, status, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO approval_requests (job_id, handler, payload, description, context, impact, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (request.job_id, request.handler, json.dumps(request.payload), request.status, request.created_at),
+                (
+                    request.job_id, 
+                    request.handler, 
+                    json.dumps(request.payload),
+                    request.description,
+                    request.context,
+                    request.impact,
+                    request.status, 
+                    request.created_at
+                ),
             )
             request.id = cur.lastrowid
             conn.commit()
 
-        log_event("approvals.request_created", handler=handler, job_id=job_id)
+        log_event("approvals.request_created", handler=handler, job_id=job_id, description=description)
         notification_service.send_notification(
             subject=f"Approval required: {handler}",
-            message=f"Job {job_id} requires approval.",
+            message=description or f"Job {job_id} requires approval.",
         )
         return request
+    
+    def _get_handler_description(self, handler: str, payload: Dict[str, Any]) -> str:
+        """Get human-readable description for a handler."""
+        handler_knowledge = HANDLER_KNOWLEDGE_BASE.get(handler, {})
+        description = handler_knowledge.get("description", f"Execute workflow handler: {handler}")
+        
+        # Add dynamic details from payload
+        if "market_context" in payload:
+            description += " Market context will be analyzed automatically."
+        if "play_id" in payload:
+            description += f" Executing revenue play: {payload.get('play_id', 'selected play')}"
+        if "cash_collected_to_date" in payload:
+            description += f" Current cash collected: ${payload.get('cash_collected_to_date', 0):,.2f}"
+            
+        return description
+    
+    def _get_handler_context(self, handler: str, payload: Dict[str, Any]) -> str:
+        """Get context about why this needs approval."""
+        handler_knowledge = HANDLER_KNOWLEDGE_BASE.get(handler, {})
+        context = handler_knowledge.get("context", f"This handler ({handler}) requires approval because it performs significant system actions.")
+        
+        # Add risk information
+        risk_level = handler_knowledge.get("risk_level", "medium")
+        if risk_level == "high":
+            context += " HIGH RISK: This action has significant impact on revenue generation or system operations."
+        elif risk_level == "medium":
+            context += " MEDIUM RISK: This action may affect revenue streams or operational workflows."
+        
+        return context
+    
+    def _get_handler_impact(self, handler: str, payload: Dict[str, Any]) -> str:
+        """Get expected impact of this handler."""
+        handler_knowledge = HANDLER_KNOWLEDGE_BASE.get(handler, {})
+        impact = handler_knowledge.get("impact", "This action will execute the scheduled workflow.")
+        
+        return impact
 
     def list_requests(self, status: Optional[str] = None, limit: int = 100) -> List[ApprovalRequest]:
         with self._connection() as conn:

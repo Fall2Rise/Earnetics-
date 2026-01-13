@@ -1,0 +1,88 @@
+{
+  "enabled": true,
+  "mode": "hybrid",
+  "default_timeout_seconds": 25,
+  "read_only_by_default": true,
+  "kill_switch": {
+    "writes_enabled": false,
+    "global_enabled": true
+  },
+  "rate_limits": {
+    "global_per_min": 120,
+    "per_domain_per_min": 30,
+    "per_agent_per_min": 20,
+    "strict_mode_per_min": 10
+  },
+  "queue": {
+    "enabled": true,
+    "max_retries": 5,
+    "backoff": "exponential",
+    "initial_delay_seconds": 1,
+    "max_delay_seconds": 60,
+    "dead_letter_enabled": true
+  },
+  "logging": {
+    "audit_enabled": true,
+    "redact_secrets": true,
+    "store_request_bodies_for_write_actions": false,
+    "log_level": "INFO"
+  },
+  "adapters": {
+    "http_reader": {
+      "enabled": true,
+      "user_agent": "Earnetics-Knowledge-Bot/1.0",
+      "max_content_size_bytes": 10485760,
+      "follow_redirects": true,
+      "max_redirects": 5
+    },
+    "search_adapter": {
+      "enabled": true,
+      "default_provider": "internal",
+      "providers": {
+        "internal": {
+          "enabled": true
+        },
+        "duckduckgo": {
+          "enabled": false,
+          "requires_internet": true
+        }
+      }
+    },
+    "playwright_reader": {
+      "enabled": false,
+      "requires_internet": true,
+      "headless": true,
+      "timeout_seconds": 30
+    },
+    "email_adapter": {
+      "enabled": true,
+      "requires_internet": true,
+      "email_providers": {
+        "mailgun": {
+          "enabled": true
+        },
+        "sendgrid": {
+          "enabled": true
+        }
+      }
+    },
+    "social_adapter": {
+      "enabled": true,
+      "requires_internet": true,
+      "social_platforms": {
+        "reddit": {
+          "enabled": true
+        },
+        "twitter": {
+          "enabled": true
+        }
+      }
+    },
+    "stripe_adapter": {
+      "enabled": true,
+      "requires_internet": true,
+      "stripe_api_version": "2023-10-16",
+      "test_mode": false
+    }
+  }
+}

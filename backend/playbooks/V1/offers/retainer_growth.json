@@ -1,0 +1,18 @@
+{
+  "template_id": "RETAINER_GROWTH",
+  "version": "1.0.0",
+  "offer_name": "Monthly AI Operations Retainer",
+  "deliverables": [
+    "Ongoing AI agent operations and optimization",
+    "Monthly strategy sessions",
+    "Performance reviews",
+    "Continuous optimization"
+  ],
+  "price_points": [
+    {"amount": 997, "label": "Monthly Retainer", "deposit": false, "interval": "month"}
+  ],
+  "guarantee": "Cancel anytime with 30-day notice",
+  "fulfillment_time": "Ongoing",
+  "target_buyer": "Business owner wanting ongoing AI automation support"
+}
+

@@ -1,0 +1,23 @@
+{
+  "template_id": "COMMON_OBJECTIONS",
+  "version": "1.0.0",
+  "objections": [
+    {
+      "objection": "Too expensive",
+      "response": "I understand budget is important. That's why I offer a 50% deposit option - you only pay the rest when you see results. Plus, [specific ROI example]. Would that work better?"
+    },
+    {
+      "objection": "Not sure if it will work for me",
+      "response": "That's exactly why I offer [guarantee]. If [specific outcome] doesn't happen, you get your money back. I've helped [X] similar [target_buyer] achieve [result]. Want to see 2 examples?"
+    },
+    {
+      "objection": "I need to think about it",
+      "response": "Absolutely, take your time. Just so you know, I'm booking [offer_name] for next week and have [X] slots left. If you decide by [deadline], I can reserve one for you. Sound fair?"
+    },
+    {
+      "objection": "I'm already working with someone",
+      "response": "That's great! This might complement what you're already doing. [Specific how it complements]. Want to see how it could fit alongside your current setup?"
+    }
+  ]
+}
+

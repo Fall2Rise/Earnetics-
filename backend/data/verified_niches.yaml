@@ -1,0 +1,90 @@
+niches:
+  - id: "niche_001"
+    niche: "Solar Lead Generation"
+    target_audience: "Residential Solar Installers"
+    pain_point: "Buying low-quality shared leads"
+    offer_idea: "Exclusive Solar Appointments via AI SMS"
+    suggested_price_cents: 150000
+    suggested_interval: "month"
+    positioning: "Stop chasing tire-kickers. Get pre-qualified appointments on your calendar."
+
+  - id: "niche_002"
+    niche: "Med Spa Automation"
+    target_audience: "Med Spa Owners"
+    pain_point: "Front desk missing calls and booking opportunities"
+    offer_idea: "24/7 AI Receptionist & Booking Bot"
+    suggested_price_cents: 9700
+    suggested_interval: "month"
+    positioning: "Never miss a patient booking again. Your AI receptionist works 24/7."
+
+  - id: "niche_003"
+    niche: "HVAC Service Agreements"
+    target_audience: "HVAC Contractors"
+    pain_point: "Inconsistent revenue during shoulder seasons"
+    offer_idea: "Automated Service Agreement Renewal System"
+    suggested_price_cents: 29700
+    suggested_interval: "month"
+    positioning: "Turn one-time repairs into lifetime recurring revenue automatically."
+
+  - id: "niche_004"
+    niche: "Real Estate Reactivation"
+    target_audience: "Real Estate Agents"
+    pain_point: "Sitting on a database of dead leads"
+    offer_idea: "Dead Lead Reactivation AI Campaign"
+    suggested_price_cents: 49700
+    suggested_interval: "month"
+    positioning: "Wake up your dead leads and turn them into listings without lifting a finger."
+
+  - id: "niche_005"
+    niche: "Gym Member Retention"
+    target_audience: "Gym & Fitness Studio Owners"
+    pain_point: "High churn rate of new members"
+    offer_idea: "AI Accountability & Retention Coach"
+    suggested_price_cents: 19700
+    suggested_interval: "month"
+    positioning: "Keep members longer with automated personal check-ins and accountability."
+
+  - id: "niche_006"
+    niche: "Roofing Storm Chaser"
+    target_audience: "Roofing Companies"
+    pain_point: "Speed to lead after a storm hits"
+    offer_idea: "Instant Storm Response AI Dialer"
+    suggested_price_cents: 250000
+    suggested_interval: "month"
+    positioning: "Be the first roofer at the door. Automate your storm response."
+
+  - id: "niche_007"
+    niche: "Dentist Patient Recall"
+    target_audience: "Dental Practices"
+    pain_point: "Patients overdue for hygiene appointments"
+    offer_idea: "Hygiene Reactivation AI Assistant"
+    suggested_price_cents: 29700
+    suggested_interval: "month"
+    positioning: "Fill your hygiene schedule automatically with AI-driven patient recall."
+
+  - id: "niche_008"
+    niche: "E-commerce Cart Recovery"
+    target_audience: "Shopify Store Owners"
+    pain_point: "High cart abandonment rates"
+    offer_idea: "SMS Cart Recovery Concierge"
+    suggested_price_cents: 9900
+    suggested_interval: "month"
+    positioning: "Recover 15% more lost sales with a human-like SMS concierge, not just a link."
+
+  - id: "niche_009"
+    niche: "Mortgage Refi Monitor"
+    target_audience: "Mortgage Brokers"
+    pain_point: "Missing past clients ready to refinance"
+    offer_idea: "Rate Watch AI Monitor"
+    suggested_price_cents: 14700
+    suggested_interval: "month"
+    positioning: "Automatically alert past clients when it makes sense to refi. Be their hero."
+
+  - id: "niche_010"
+    niche: "Restaurant Review Management"
+    target_audience: "Local Restaurants"
+    pain_point: "Negative reviews hurting foot traffic"
+    offer_idea: "AI Reputation Defense Shield"
+    suggested_price_cents: 19900
+    suggested_interval: "month"
+    positioning: "Turn happy diners into 5-star reviews and intercept negative ones instantly."

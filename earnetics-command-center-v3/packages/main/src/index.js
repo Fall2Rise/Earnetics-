@@ -38,6 +38,12 @@ app.on('ready', () => {
     ipcMain.handle('get-events', async (event, filter) => {
         return eventStore.getEvents(filter?.since, filter?.until, filter?.limit);
     });
+    ipcMain.handle('get-agents', async () => {
+        return eventStore.readModels.getAgents();
+    });
+    ipcMain.handle('get-departments', async () => {
+        return eventStore.readModels.getDepartments();
+    });
     ipcMain.handle('publish-event', async (event, type, payload, meta) => {
         const newEvent = eventBus.publish(type, payload, meta);
         // Broadcast to all windows
@@ -45,6 +51,9 @@ app.on('ready', () => {
             win.webContents.send('new-event', newEvent);
         });
         return newEvent;
+    });
+    ipcMain.handle('send-command', async (event, type, payload) => {
+        eventBus.sendCommand(type, payload);
     });
 });
 app.on('window-all-closed', () => {

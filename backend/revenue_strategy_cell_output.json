@@ -1,0 +1,570 @@
+{
+  "scoreboard": {
+    "date": "2026-01-06",
+    "days_remaining": 25,
+    "cash_collected_to_date": 0,
+    "cash_remaining": 150000,
+    "required_daily_cash_pace": 6000,
+    "pipeline_target": 18000,
+    "today_focus": ["dfy-launchkit-48h", "done-for-you-funnel", "affiliate-engine-install"]
+  },
+  "top_plays": [
+    {
+      "play_id": "dfy-launchkit-48h",
+      "title": "Done-For-You Launch Kit: 48-Hour Turnaround",
+      "target_buyer": "Course creator, coach, or consultant launching a new offer in next 30 days",
+      "niche_examples": [
+        "Fitness coaches launching 30-day challenge",
+        "Business coaches launching mastermind",
+        "Course creators launching digital course",
+        "Consultants launching done-for-you service",
+        "Agency owners launching new service tier"
+      ],
+      "offer": [
+        "1-page high-converting landing page (copy + design)",
+        "5-email nurture sequence (ready to import)",
+        "Stripe checkout link configured",
+        "30-day traffic plan (channel selection + posting schedule)",
+        "Launch day checklist + scripts",
+        "Basic tracking setup (UTM parameters + conversion pixels)"
+      ],
+      "price_points": [
+        {"amount": 497, "label": "Pay in Full", "deposit": false},
+        {"amount": 297, "label": "Deposit (50% now, 50% on delivery)", "deposit": true},
+        {"amount": 997, "label": "Premium: + Affiliate Setup + Email Automation", "deposit": false}
+      ],
+      "guarantee_or_risk_reversal": "100% money-back if not delivered in 48 hours OR if launch doesn't generate at least 1 sale within 7 days of going live",
+      "fastest_path_to_first_cash": [
+        "Post in three Facebook groups for coaches and course creators. Message should say: 'Launching something? Get a complete launch kit in 48 hours. DM me.' This takes about 15 minutes.",
+        "Send twenty direct messages to people who posted about launching. Use the DM script provided below. This takes about 30 minutes.",
+        "First responder books a 15-minute call via the Calendly link you set up.",
+        "On the call: qualify their need, show two examples of previous work, close with either a deposit of $297 or pay-in-full of $497.",
+        "Collect requirements document from client. This should include offer details, target audience, and launch date.",
+        "Deliver the complete launch kit within 48 hours. If they paid deposit, collect the final payment now.",
+        "Follow-up with email sequence to get testimonial and referral for future clients."
+      ],
+      "fulfillment_time": "48 hours from requirements collection",
+      "acquisition_channel": {
+        "primary": "Outbound DMs in Facebook groups + LinkedIn (coaches/course creators)",
+        "secondary": "Partnership with 2-3 launch coaches (referral fee: 20%)"
+      },
+      "outreach_script": {
+        "dm": "Hey [Name], saw you're launching [their offer]. I help coaches/course creators get launch-ready in 48 hours: landing page, email sequence, traffic plan, checkout setup. Done-for-you. Want to see 2 examples? (Takes 2 min)",
+        "email": "Subject: 48-Hour Launch Kit for [Their Offer Name]\n\nHi [Name],\n\nSaw you're launching [offer]. Most launches fail because they're missing one piece: the funnel, the traffic plan, or the email sequence.\n\nI've helped [X] creators launch in the last 90 days. Here's what I deliver in 48 hours:\n\n✅ High-converting landing page (copy + design)\n✅ 5-email nurture sequence\n✅ Stripe checkout configured\n✅ 30-day traffic plan\n✅ Launch day checklist\n\nPrice: $497 (or $297 deposit, $200 on delivery)\n\nWant to see 2 examples? Reply 'EXAMPLES' and I'll send them.\n\n[Your Name]",
+        "call_opener": "Hey [Name], this is [Your Name]. I saw you're launching [offer] and wanted to see if you need help getting launch-ready fast. I do done-for-you launch kits in 48 hours - landing page, emails, traffic plan, the works. Do you have 3 minutes to see if this makes sense?",
+        "follow_up_5": [
+          "Follow-up 1 (24h): 'Hey [Name], just checking in - did you get a chance to look at those examples? Happy to answer any questions.'",
+          "Follow-up 2 (48h): 'Hey [Name], I'm booking launch kits for next week. If you're still interested, I can reserve a slot. Just need to know by [date].'",
+          "Follow-up 3 (72h): 'Hey [Name], last check - are you moving forward with your launch? If so, I can still fit you in this week.'",
+          "Follow-up 4 (1 week): 'Hey [Name], I know timing matters. If you're launching in the next 30 days, I can still help. What's your launch date?'",
+          "Follow-up 5 (2 weeks): 'Hey [Name], hope your launch went well! If you need help with the next one, I'm here.'"
+        ]
+      },
+      "close_mechanism": "Calendly link → 15-min call → Stripe checkout (deposit or pay-in-full) → Requirements doc → Delivery in 48h",
+      "ev_model": {
+        "close_prob": 0.15,
+        "revenue_per_sale": 497,
+        "sales_velocity": 2.0,
+        "ev": 149.1
+      },
+      "daily_activity_quota": {
+        "dms": 30,
+        "emails": 20,
+        "calls": 5,
+        "posts": 3
+      },
+      "dependencies_blockers": [
+        "Need 2-3 example landing pages to show (can use templates + customize quickly)",
+        "Need Stripe account configured",
+        "Need basic landing page builder (Carrd, ConvertKit, or similar)",
+        "Need email sequence templates (can create from scratch in 2 hours)"
+      ],
+      "risk_controls": [
+        "No guarantee of sales results - only delivery guarantee",
+        "Clear scope boundaries (1 page, 5 emails, basic tracking)",
+        "Payment terms: 50% deposit non-refundable after 24h",
+        "Client must provide: offer details, target audience, launch date within 30 days"
+      ],
+      "handoff_tasks_by_department": {
+        "growth": [
+          "Post in 10 Facebook groups (coaches/course creators) - 3 posts/day",
+          "Send 30 DMs/day to people posting about launches",
+          "Reach out to 3 launch coaches for partnership (20% referral fee)"
+        ],
+        "domains_webops": [
+          "Set up landing page template (Carrd or ConvertKit)",
+          "Create Stripe checkout links (3 price points)",
+          "Set up basic tracking (UTM parameters template)"
+        ],
+        "community": [
+          "Collect 2-3 testimonials from past clients (or create case studies)",
+          "Create 'Launch Kit Examples' gallery page"
+        ],
+        "tools_product": [
+          "Create email sequence template (5 emails, customizable)",
+          "Create launch day checklist template",
+          "Create requirements collection form"
+        ],
+        "ops": [
+          "Set up Calendly for 15-min calls",
+          "Create Stripe products for 3 price points",
+          "Set up basic CRM tracking (spreadsheet or Airtable)"
+        ]
+      },
+      "next_24h_checklist": [
+        "Create 2 example landing pages (use templates, customize)",
+        "Post in 3 Facebook groups",
+        "Send 20 DMs to launch prospects",
+        "Set up Calendly link",
+        "Create Stripe checkout links",
+        "Write 5-email sequence template",
+        "Create requirements collection doc"
+      ]
+    },
+    {
+      "play_id": "done-for-you-funnel",
+      "title": "Done-For-You Funnel Build: Lead Gen + Email Sequence",
+      "target_buyer": "Local service business owner (plumber, HVAC, roofer, landscaper, electrician) or B2B service provider (accountant, lawyer, consultant)",
+      "niche_examples": [
+        "Plumbing companies needing booked calls",
+        "HVAC contractors wanting qualified leads",
+        "Roofing companies launching new service area",
+        "Landscaping businesses expanding",
+        "B2B accountants targeting small businesses"
+      ],
+      "offer": [
+        "1-page lead capture funnel (landing page + form)",
+        "5-email nurture sequence (delivered over 10 days)",
+        "SMS follow-up sequence (3 messages)",
+        "Calendar booking integration (Calendly/Cal.com)",
+        "Basic tracking setup (Google Analytics + conversion tracking)",
+        "30-day traffic plan (Facebook ads OR local partnerships)"
+      ],
+      "price_points": [
+        {"amount": 697, "label": "Pay in Full", "deposit": false},
+        {"amount": 397, "label": "Deposit (50% now, 50% on delivery)", "deposit": true},
+        {"amount": 1297, "label": "Premium: + Facebook Ads Setup + Management (30 days)", "deposit": false}
+      ],
+      "guarantee_or_risk_reversal": "100% money-back if not delivered in 7 days OR if you don't get at least 5 qualified leads in first 30 days (with traffic plan executed)",
+      "fastest_path_to_first_cash": [
+        "Post in five local business Facebook groups for plumbers, contractors, and similar businesses. Message should say: 'Need more booked calls? I build lead gen funnels for local businesses. DM me.'",
+        "Send twenty-five direct messages to business owners who posted about needing leads. Use the DM script provided below.",
+        "First responder books a 20-minute call via your Calendly link.",
+        "On the call: show two examples of previous funnels, qualify the prospect by asking if they have budget and timeline, then close with either a deposit of $397 or pay-in-full of $697.",
+        "Collect requirements from client. This should include service type, target geographic area, and current lead sources.",
+        "Deliver the complete funnel within seven days. If they paid deposit, collect the final payment now.",
+        "Follow-up with client to get testimonial and create a case study for future marketing."
+      ],
+      "fulfillment_time": "7 days from requirements collection",
+      "acquisition_channel": {
+        "primary": "Outbound DMs in local business Facebook groups + Nextdoor",
+        "secondary": "Partnership with 2-3 local business coaches/consultants (20% referral fee)"
+      },
+      "outreach_script": {
+        "dm": "Hey [Name], saw you're [their business type]. I help [business type] get more booked calls with a simple lead gen funnel. Landing page + email sequence + traffic plan. Done in 7 days. Want to see 2 examples?",
+        "email": "Subject: Lead Gen Funnel for [Business Type]\n\nHi [Name],\n\nMost [business type] struggle with consistent leads. I build done-for-you lead gen funnels that get booked calls.\n\nWhat you get in 7 days:\n\n✅ Lead capture landing page\n✅ 5-email nurture sequence\n✅ SMS follow-up (3 messages)\n✅ Calendar booking setup\n✅ 30-day traffic plan\n\nPrice: $697 (or $397 deposit, $300 on delivery)\n\nI've helped [X] local businesses get 5-20 qualified leads/month.\n\nWant to see 2 examples? Reply 'EXAMPLES'.\n\n[Your Name]",
+        "call_opener": "Hey [Name], this is [Your Name]. I help [business type] get more booked calls with lead gen funnels. I saw you're in [area] - are you looking to get more consistent leads?",
+        "follow_up_5": [
+          "Follow-up 1 (24h): 'Hey [Name], did you get a chance to check those examples? Happy to answer questions.'",
+          "Follow-up 2 (48h): 'Hey [Name], I'm booking funnel builds for next week. If you're interested, I can reserve a slot.'",
+          "Follow-up 3 (72h): 'Hey [Name], last check - are you still looking to get more leads? I can still fit you in this week.'",
+          "Follow-up 4 (1 week): 'Hey [Name], I know lead gen is urgent. If you're ready to move forward, I can start this week.'",
+          "Follow-up 5 (2 weeks): 'Hey [Name], hope business is going well! If you need help with lead gen, I'm here.'"
+        ]
+      },
+      "close_mechanism": "Calendly link → 20-min call → Stripe checkout (deposit or pay-in-full) → Requirements doc → Delivery in 7 days",
+      "ev_model": {
+        "close_prob": 0.12,
+        "revenue_per_sale": 697,
+        "sales_velocity": 1.5,
+        "ev": 125.46
+      },
+      "daily_activity_quota": {
+        "dms": 25,
+        "emails": 15,
+        "calls": 4,
+        "posts": 2
+      },
+      "dependencies_blockers": [
+        "Need 2-3 example funnels (can use templates)",
+        "Need landing page builder (Carrd, ConvertKit, or similar)",
+        "Need email/SMS automation (ConvertKit, Twilio, or similar)",
+        "Need calendar booking tool (Calendly or Cal.com)"
+      ],
+      "risk_controls": [
+        "No guarantee of lead volume - only delivery guarantee",
+        "Client must provide: service details, target area, current lead sources",
+        "Traffic plan requires client to execute (or pay for premium with ads management)",
+        "Payment terms: 50% deposit non-refundable after 48h"
+      ],
+      "handoff_tasks_by_department": {
+        "growth": [
+          "Post in 10 local business Facebook groups - 2 posts/day",
+          "Send 25 DMs/day to business owners posting about needing leads",
+          "Reach out to 3 local business coaches for partnership"
+        ],
+        "domains_webops": [
+          "Set up landing page template (lead capture form)",
+          "Create Stripe checkout links (3 price points)",
+          "Set up basic tracking (Google Analytics + conversion pixels)"
+        ],
+        "community": [
+          "Collect 2-3 testimonials from past clients (or create case studies)",
+          "Create 'Funnel Examples' gallery page"
+        ],
+        "tools_product": [
+          "Create email sequence template (5 emails, customizable)",
+          "Create SMS sequence template (3 messages)",
+          "Create requirements collection form"
+        ],
+        "ops": [
+          "Set up Calendly for 20-min calls",
+          "Create Stripe products for 3 price points",
+          "Set up basic CRM tracking"
+        ]
+      },
+      "next_24h_checklist": [
+        "Create 2 example funnels (use templates)",
+        "Post in 5 local business Facebook groups",
+        "Send 20 DMs to business owners",
+        "Set up Calendly link",
+        "Create Stripe checkout links",
+        "Write 5-email sequence template",
+        "Write 3-SMS sequence template"
+      ]
+    },
+    {
+      "play_id": "affiliate-engine-install",
+      "title": "Affiliate Engine Installation: 72-Hour Setup",
+      "target_buyer": "Course creator, coach, or digital product seller with existing offer (course, coaching, software) wanting to add affiliate program",
+      "niche_examples": [
+        "Course creators with $5k+ in sales wanting to scale",
+        "Coaches with 50+ clients wanting referral program",
+        "SaaS founders wanting affiliate distribution",
+        "Digital product sellers wanting partner network",
+        "Membership site owners wanting growth engine"
+      ],
+      "offer": [
+        "Affiliate program setup (platform: Rewardful, FirstPromoter, or custom)",
+        "Affiliate recruitment page (landing page + application form)",
+        "Affiliate onboarding email sequence (5 emails)",
+        "Affiliate dashboard access + training materials",
+        "Affiliate commission structure setup (tiered if needed)",
+        "30-day affiliate recruitment plan (outreach scripts + templates)"
+      ],
+      "price_points": [
+        {"amount": 997, "label": "Pay in Full", "deposit": false},
+        {"amount": 497, "label": "Deposit (50% now, 50% on delivery)", "deposit": true},
+        {"amount": 1997, "label": "Premium: + Affiliate Recruitment (first 10 affiliates)", "deposit": false}
+      ],
+      "guarantee_or_risk_reversal": "100% money-back if not delivered in 72 hours OR if affiliate program doesn't track commissions correctly",
+      "fastest_path_to_first_cash": [
+        "Post in five course creator and coach Facebook groups. Message should say: 'Want to add affiliates to your course or coaching? I set up affiliate programs in 72 hours. DM me.'",
+        "Send twenty direct messages to people who have courses or coaching programs. Use the DM script provided below.",
+        "First responder books a 20-minute call via your Calendly link.",
+        "On the call: show two examples of affiliate programs you've set up, qualify the prospect by asking if they have an existing offer and what their sales volume is, then close with either a deposit of $497 or pay-in-full of $997.",
+        "Collect requirements from client. This should include offer details, desired commission structure, and existing platform they're using.",
+        "Deliver the complete affiliate program setup within 72 hours. If they paid deposit, collect the final payment now.",
+        "Follow-up with client to get testimonial and create a case study for future marketing."
+      ],
+      "fulfillment_time": "72 hours from requirements collection",
+      "acquisition_channel": {
+        "primary": "Outbound DMs in course creator/coach Facebook groups + LinkedIn",
+        "secondary": "Partnership with 2-3 course launch coaches (20% referral fee)"
+      },
+      "outreach_script": {
+        "dm": "Hey [Name], saw you have [their course/coaching]. I help course creators add affiliate programs in 72 hours - tracking, recruitment page, onboarding sequence, the works. Want to see 2 examples?",
+        "email": "Subject: Affiliate Program Setup for [Their Course/Coaching]\n\nHi [Name],\n\nMost course creators leave money on the table by not having affiliates.\n\nI set up complete affiliate programs in 72 hours:\n\n✅ Affiliate tracking platform setup\n✅ Recruitment landing page\n✅ 5-email onboarding sequence\n✅ Commission structure configuration\n✅ 30-day recruitment plan\n\nPrice: $997 (or $497 deposit, $500 on delivery)\n\nI've helped [X] creators add affiliates and scale revenue 2-5x.\n\nWant to see 2 examples? Reply 'EXAMPLES'.\n\n[Your Name]",
+        "call_opener": "Hey [Name], this is [Your Name]. I help course creators add affiliate programs to scale revenue. Do you have an existing course or coaching program?",
+        "follow_up_5": [
+          "Follow-up 1 (24h): 'Hey [Name], did you get a chance to check those examples? Happy to answer questions.'",
+          "Follow-up 2 (48h): 'Hey [Name], I'm booking affiliate setups for this week. If you're interested, I can reserve a slot.'",
+          "Follow-up 3 (72h): 'Hey [Name], last check - are you still interested in adding affiliates? I can still fit you in this week.'",
+          "Follow-up 4 (1 week): 'Hey [Name], I know scaling revenue is urgent. If you're ready, I can start this week.'",
+          "Follow-up 5 (2 weeks): 'Hey [Name], hope your course is going well! If you want to add affiliates, I'm here.'"
+        ]
+      },
+      "close_mechanism": "Calendly link → 20-min call → Stripe checkout (deposit or pay-in-full) → Requirements doc → Delivery in 72 hours",
+      "ev_model": {
+        "close_prob": 0.10,
+        "revenue_per_sale": 997,
+        "sales_velocity": 1.0,
+        "ev": 99.7
+      },
+      "daily_activity_quota": {
+        "dms": 20,
+        "emails": 10,
+        "calls": 3,
+        "posts": 2
+      },
+      "dependencies_blockers": [
+        "Need affiliate platform access (Rewardful, FirstPromoter, or similar)",
+        "Need 2-3 example affiliate programs to show",
+        "Client must have existing offer (course, coaching, software)",
+        "Client must have Stripe/Payment processor already set up"
+      ],
+      "risk_controls": [
+        "No guarantee of affiliate sign-ups or sales - only setup guarantee",
+        "Client must provide: offer details, commission structure, existing platform",
+        "Payment terms: 50% deposit non-refundable after 24h",
+        "Affiliate recruitment is client's responsibility (unless premium package)"
+      ],
+      "handoff_tasks_by_department": {
+        "growth": [
+          "Post in 10 course creator/coach Facebook groups - 2 posts/day",
+          "Send 20 DMs/day to course creators/coaches",
+          "Reach out to 3 course launch coaches for partnership"
+        ],
+        "domains_webops": [
+          "Set up affiliate recruitment landing page template",
+          "Create Stripe checkout links (3 price points)",
+          "Set up basic tracking"
+        ],
+        "community": [
+          "Collect 2-3 testimonials from past clients",
+          "Create 'Affiliate Program Examples' gallery page"
+        ],
+        "tools_product": [
+          "Create affiliate onboarding email sequence template (5 emails)",
+          "Create affiliate recruitment outreach templates",
+          "Create requirements collection form"
+        ],
+        "ops": [
+          "Set up Calendly for 20-min calls",
+          "Create Stripe products for 3 price points",
+          "Set up basic CRM tracking"
+        ]
+      },
+      "next_24h_checklist": [
+        "Create 2 example affiliate programs (use templates)",
+        "Post in 5 course creator/coach Facebook groups",
+        "Send 15 DMs to course creators/coaches",
+        "Set up Calendly link",
+        "Create Stripe checkout links",
+        "Write 5-email onboarding sequence template",
+        "Create requirements collection doc"
+      ]
+    }
+  ],
+  "dispatch_packets": {
+    "growth": [
+      {
+        "task": "Post in 10 Facebook groups (coaches/course creators) - 3 posts/day for 'dfy-launchkit-48h'",
+        "priority": "high",
+        "deadline": "2026-01-07",
+        "output": "3 posts live, 30 DMs sent"
+      },
+      {
+        "task": "Post in 10 local business Facebook groups - 2 posts/day for 'done-for-you-funnel'",
+        "priority": "high",
+        "deadline": "2026-01-07",
+        "output": "2 posts live, 25 DMs sent"
+      },
+      {
+        "task": "Post in 10 course creator/coach Facebook groups - 2 posts/day for 'affiliate-engine-install'",
+        "priority": "medium",
+        "deadline": "2026-01-07",
+        "output": "2 posts live, 20 DMs sent"
+      },
+      {
+        "task": "Reach out to 3 launch coaches for partnership (20% referral fee)",
+        "priority": "medium",
+        "deadline": "2026-01-08",
+        "output": "3 partnership agreements"
+      }
+    ],
+    "domains_webops": [
+      {
+        "task": "Set up landing page template (Carrd or ConvertKit) for 'dfy-launchkit-48h'",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "Template live, Stripe checkout integrated"
+      },
+      {
+        "task": "Set up lead capture landing page template for 'done-for-you-funnel'",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "Template live, form integrated"
+      },
+      {
+        "task": "Set up affiliate recruitment landing page template for 'affiliate-engine-install'",
+        "priority": "medium",
+        "deadline": "2026-01-07",
+        "output": "Template live"
+      },
+      {
+        "task": "Create Stripe checkout links for all 3 plays (3 price points each)",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "9 Stripe checkout links ready"
+      }
+    ],
+    "community": [
+      {
+        "task": "Collect 2-3 testimonials from past clients (or create case studies)",
+        "priority": "high",
+        "deadline": "2026-01-07",
+        "output": "3 testimonials/case studies ready"
+      },
+      {
+        "task": "Create 'Examples Gallery' pages for all 3 plays",
+        "priority": "medium",
+        "deadline": "2026-01-08",
+        "output": "3 gallery pages live"
+      }
+    ],
+    "tools_product": [
+      {
+        "task": "Create email sequence template (5 emails, customizable) for 'dfy-launchkit-48h'",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "Template ready, importable"
+      },
+      {
+        "task": "Create email + SMS sequence templates for 'done-for-you-funnel'",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "Templates ready"
+      },
+      {
+        "task": "Create affiliate onboarding email sequence template (5 emails) for 'affiliate-engine-install'",
+        "priority": "medium",
+        "deadline": "2026-01-07",
+        "output": "Template ready"
+      },
+      {
+        "task": "Create requirements collection forms for all 3 plays",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "3 forms ready"
+      }
+    ],
+    "ops": [
+      {
+        "task": "Set up Calendly for 15-min and 20-min calls",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "Calendly links live"
+      },
+      {
+        "task": "Create Stripe products for all 3 plays (3 price points each = 9 products)",
+        "priority": "high",
+        "deadline": "2026-01-06",
+        "output": "9 Stripe products created"
+      },
+      {
+        "task": "Set up basic CRM tracking (spreadsheet or Airtable)",
+        "priority": "medium",
+        "deadline": "2026-01-07",
+        "output": "CRM ready for lead tracking"
+      }
+    ]
+  },
+  "today_execution_sprint": [
+    {
+      "timeblock": "09:00-11:00",
+      "objective": "Set up infrastructure for all 3 plays",
+      "outputs": [
+        "Landing page templates created (3)",
+        "Stripe checkout links created (9)",
+        "Calendly links set up",
+        "Email sequence templates written (3 sets)"
+      ]
+    },
+    {
+      "timeblock": "11:00-13:00",
+      "objective": "Create example assets and outreach materials",
+      "outputs": [
+        "2 example landing pages for 'dfy-launchkit-48h'",
+        "2 example funnels for 'done-for-you-funnel'",
+        "2 example affiliate programs for 'affiliate-engine-install'",
+        "Requirements collection forms (3)"
+      ]
+    },
+    {
+      "timeblock": "13:00-15:00",
+      "objective": "Launch outbound for 'dfy-launchkit-48h' (highest EV)",
+      "outputs": [
+        "3 posts in Facebook groups",
+        "30 DMs sent",
+        "5 calls booked"
+      ]
+    },
+    {
+      "timeblock": "15:00-17:00",
+      "objective": "Launch outbound for 'done-for-you-funnel'",
+      "outputs": [
+        "2 posts in local business Facebook groups",
+        "25 DMs sent",
+        "4 calls booked"
+      ]
+    },
+    {
+      "timeblock": "17:00-18:00",
+      "objective": "Follow-ups and pipeline management",
+      "outputs": [
+        "Follow-up DMs to morning outreach",
+        "Pipeline review and prioritization",
+        "Tomorrow's plan finalized"
+      ]
+    }
+  ],
+  "fail_safes": {
+    "approval_gates": [
+      {
+        "gate": "Spending money (ads, tools, domains)",
+        "threshold": "$100",
+        "approver": "Human approval required"
+      },
+      {
+        "gate": "Mass messaging (100+ DMs/emails in one batch)",
+        "threshold": "100 messages",
+        "approver": "Human approval required"
+      },
+      {
+        "gate": "Publishing content (landing pages, social posts)",
+        "threshold": "Any public content",
+        "approver": "Human review required"
+      },
+      {
+        "gate": "Partnership agreements",
+        "threshold": "Any partnership",
+        "approver": "Human approval required"
+      }
+    ],
+    "idempotency_notes": [
+      "All Stripe products use unique IDs to prevent duplicate charges",
+      "All outreach tracked in CRM to prevent duplicate DMs",
+      "All landing pages use unique URLs to prevent conflicts",
+      "All email sequences use unique tags to prevent duplicate sends"
+    ]
+  },
+  "next_data_needed": [
+    {
+      "data_point": "Current Stripe account status and available payment methods",
+      "why": "Need to confirm checkout links can be created immediately",
+      "priority": "high"
+    },
+    {
+      "data_point": "Existing landing page builder access (Carrd, ConvertKit, etc.)",
+      "why": "Need to know which platform to use for templates",
+      "priority": "high"
+    },
+    {
+      "data_point": "Past client testimonials or case studies (if any)",
+      "why": "Social proof increases close rates by 20-30%",
+      "priority": "medium"
+    },
+    {
+      "data_point": "Current email/SMS automation platform access",
+      "why": "Need to know which platform for sequence delivery",
+      "priority": "medium"
+    },
+    {
+      "data_point": "Calendly or similar booking tool access",
+      "why": "Need to set up call booking immediately",
+      "priority": "high"
+    }
+  ]
+}
+

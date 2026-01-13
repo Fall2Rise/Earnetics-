@@ -12,7 +12,13 @@ from typing import Any, Dict, List, Optional
 from backend.audit_log import log_event
 from backend.credentials_store import get_secret
 
-SETTINGS_PATH = Path(os.getenv("NOTIFICATION_SETTINGS_PATH", "notification_settings.json"))
+def _normalize_env_path(env_value: Optional[str], default: str) -> Path:
+    """Normalize path from environment variable, converting backslashes to forward slashes."""
+    if not env_value:
+        return Path(default)
+    return Path(env_value.replace("\\", "/"))
+
+SETTINGS_PATH = _normalize_env_path(os.getenv("NOTIFICATION_SETTINGS_PATH"), "notification_settings.json")
 
 
 @dataclass

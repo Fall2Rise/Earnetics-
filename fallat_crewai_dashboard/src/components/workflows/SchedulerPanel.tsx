@@ -66,21 +66,29 @@ export const SchedulerPanel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const loadJobs = useCallback(async () => {
+  const loadJobs = useCallback(async (abortSignal?: AbortSignal) => {
     setLoading(true);
     try {
-      const data = await listJobs();
+      const data = await listJobs(abortSignal);
+      if (abortSignal?.aborted) return; // Don't update state if request was cancelled
       setJobs(data);
       setError(null);
     } catch (err) {
+      if (abortSignal?.aborted) return; // Ignore errors from cancelled requests
       setError(err instanceof Error ? err.message : 'Failed to load jobs');
     } finally {
-      setLoading(false);
+      if (!abortSignal?.aborted) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    void loadJobs();
+    const abortController = new AbortController();
+    void loadJobs(abortController.signal);
+    return () => {
+      abortController.abort(); // Cancel request on unmount
+    };
   }, [loadJobs]);
 
   const handleChange = (key: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -137,8 +145,14 @@ export const SchedulerPanel: React.FC = () => {
   };
 
   const handleDeleteJob = async (jobId: string) => {
+    if (!confirm(`Are you sure you want to delete job "${jobId}"?`)) {
+      return;
+    }
+    setError(null);
+    setSuccessMessage(null);
     try {
       await deleteJob(jobId);
+      setSuccessMessage(`Job "${jobId}" deleted successfully.`);
       await loadJobs();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete job');
@@ -164,6 +178,8 @@ export const SchedulerPanel: React.FC = () => {
 
   const handleRunDueJobs = async () => {
     setRunning(true);
+    setSuccessMessage(null);
+    setError(null);
     try {
       const results = await runDueJobs();
       const errors = results.filter((result) => result.status === 'error');
@@ -171,9 +187,8 @@ export const SchedulerPanel: React.FC = () => {
         const messages = errors.map((item) => `${item.job_id}: ${item.message ?? 'Failed'}`).join(', ');
         throw new Error(messages);
       }
-      setSuccessMessage(`Ran ${results.length} jobs.`);
-      setError(null);
-      await loadJobs();
+      setSuccessMessage(`Successfully ran ${results.length} due job(s).`);
+      await loadJobs(); // Refresh job list after running
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to run due jobs');
     } finally {
@@ -185,8 +200,8 @@ export const SchedulerPanel: React.FC = () => {
     <div className="scheduler-panel">
       <header className="panel-header">
         <div>
-          <h3>Automation Scheduler</h3>
-          <span>Manage recurring revenue jobs</span>
+          <h3>⏰ Automation Scheduler</h3>
+          <span className="scheduler-panel__subtitle">Schedule recurring revenue jobs, product launches, and automated workflows</span>
         </div>
         <div className="panel-header__actions">
           <button type="button" className="refresh-button" onClick={() => void loadJobs()} disabled={loading}>
@@ -201,7 +216,15 @@ export const SchedulerPanel: React.FC = () => {
       {error && <p className="panel-error">{error}</p>}
       {successMessage && <p className="panel-success">{successMessage}</p>}
 
-      <section className="scheduler-form glass-panel">
+      <div className="scheduler-panel__info">
+        <p className="text-sm text-indigo-200/80 mb-4 p-3 rounded-lg bg-indigo-900/20 border border-indigo-500/20">
+          <strong>💡 How it works:</strong> Create scheduled jobs that run automatically at specified intervals. 
+          Jobs can launch products, run revenue cycles, execute affiliate campaigns, and more. 
+          Use interval (seconds), cron (time-based), or once (single execution) scheduling.
+        </p>
+      </div>
+
+      <section className="scheduler-form">
         <form onSubmit={handleCreateJob} className="scheduler-form__grid">
           <label>
             Job ID (optional)
@@ -249,7 +272,7 @@ export const SchedulerPanel: React.FC = () => {
         </form>
       </section>
 
-      <section className="scheduler-jobs glass-panel">
+      <section className="scheduler-jobs">
         <header>
           <h4>Scheduled Jobs</h4>
         </header>

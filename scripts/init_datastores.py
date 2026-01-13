@@ -5,6 +5,13 @@ from __future__ import annotations
 
 import argparse
 import logging
+import sys
+import os
+
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from backend.audit_log import AuditLogStore
 from backend.corporate_memory import CorporateMemory
@@ -16,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 def initialize_datastores(include_vault: bool = False) -> None:
     """Create or update all local SQLite stores."""
-    CorporateMemory()
+    memory = CorporateMemory()
+    memory.create_tables()
     logger.info("Corporate memory database ready")
 
     AuditLogStore()

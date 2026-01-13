@@ -1,0 +1,51 @@
+{
+  "read_allowlist": [
+    "wikipedia.org",
+    "wikidata.org",
+    "openalex.org",
+    "crossref.org",
+    "arxiv.org",
+    "semanticscholar.org",
+    "nist.gov",
+    "rfc-editor.org",
+    "ietf.org",
+    "w3.org",
+    "whatwg.org",
+    "attack.mitre.org",
+    "github.com",
+    "raw.githubusercontent.com",
+    "docs.python.org",
+    "developer.mozilla.org",
+    "web.archive.org",
+    "archive.org",
+    "gutenberg.org",
+    "openlibrary.org",
+    "gdeltproject.org",
+    "duckduckgo.com",
+    "api.duckduckgo.com"
+  ],
+  "write_allowlist": [
+    "api.stripe.com",
+    "reddit.com",
+    "oauth.reddit.com",
+    "api.reddit.com",
+    "api.twitter.com",
+    "api.x.com",
+    "api.mailgun.net",
+    "api.sendgrid.com",
+    "resend.com"
+  ],
+  "denylist": [
+    "pastebin.com",
+    "anonfiles.com",
+    "filebin.net"
+  ],
+  "wildcard_rules": {
+    "allowed_subdomains": [
+      "*.github.com",
+      "*.wikipedia.org",
+      "*.archive.org"
+    ],
+    "blocked_subdomains": []
+  }
+}

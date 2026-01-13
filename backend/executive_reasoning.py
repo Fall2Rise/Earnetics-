@@ -17,7 +17,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
-BUSINESS_DB_PATH = Path(os.getenv("BUSINESS_DB_PATH", "business_database.db"))
+def _normalize_env_path(env_value: Optional[str], default: str) -> Path:
+    """Normalize path from environment variable, converting backslashes to forward slashes."""
+    if not env_value:
+        return Path(default)
+    return Path(env_value.replace("\\", "/"))
+
+BUSINESS_DB_PATH = _normalize_env_path(os.getenv("BUSINESS_DB_PATH"), "business_database.db")
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
@@ -34,50 +40,11 @@ class ExecutiveDatabase:
 
     def __init__(self, db_path: Path = BUSINESS_DB_PATH):
         self.db_path = db_path
-        self._ensure_tables()
 
     def _get_conn(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
-
-    def _ensure_tables(self) -> None:
-        with self._get_conn() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS strategic_snapshots (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    created_at TEXT NOT NULL,
-                    generated_by TEXT NOT NULL,
-                    metrics JSON NOT NULL,
-                    period_start TEXT,
-                    period_end TEXT,
-                    notes TEXT
-                )
-                """
-            )
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS executive_directives (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    title TEXT NOT NULL,
-                    directive_type TEXT NOT NULL,
-                    owner TEXT NOT NULL,
-                    priority TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'pending',
-                    description TEXT,
-                    payload JSON NOT NULL,
-                    confidence REAL,
-                    due_date TEXT,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    source_snapshot_id INTEGER,
-                    FOREIGN KEY (source_snapshot_id) REFERENCES strategic_snapshots (id)
-                )
-                """
-            )
-            conn.commit()
 
     # Snapshot operations -------------------------------------------------
 

@@ -4,9 +4,19 @@ Generates actual .mp4 video files locally using MoviePy and gTTS.
 No external paid APIs required.
 """
 import os
-from gtts import gTTS
-from moviepy.editor import ColorClip, TextClip, CompositeVideoClip, AudioFileClip
 import textwrap
+
+try:
+    from gtts import gTTS
+    from moviepy.editor import ColorClip, TextClip, CompositeVideoClip, AudioFileClip
+    MOVIEPY_AVAILABLE = True
+except ImportError:
+    MOVIEPY_AVAILABLE = False
+    # Create dummy classes for type hints
+    ColorClip = None
+    TextClip = None
+    CompositeVideoClip = None
+    AudioFileClip = None
 
 class VideoFactory:
     def __init__(self, output_dir="static/generated_videos"):

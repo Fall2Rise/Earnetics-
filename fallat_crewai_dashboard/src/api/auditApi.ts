@@ -30,8 +30,8 @@ const buildQueryString = (params: AuditQuery) => {
   return query ? `?${query}` : '';
 };
 
-export const fetchAuditEvents = async (query: AuditQuery = {}): Promise<AuditEvent[]> => {
-  const response = await fetch(`${API_BASE_URL}/api/audit/events${buildQueryString(query)}`);
+export const fetchAuditEvents = async (query: AuditQuery = {}, signal?: AbortSignal): Promise<AuditEvent[]> => {
+  const response = await fetch(`${API_BASE_URL}/api/audit/events${buildQueryString(query)}`, { signal });
   if (!response.ok) {
     const text = await response.text();
     throw new Error(text || response.statusText);

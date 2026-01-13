@@ -1,0 +1,155 @@
+{
+  "roles": {
+    "EXEC": {
+      "read": [
+        "web.search",
+        "web.fetch",
+        "web.render_fetch",
+        "web.head",
+        "stripe.read"
+      ],
+      "write": [
+        "web.post",
+        "web.download",
+        "stripe.write",
+        "email.send",
+        "social.post"
+      ],
+      "requires_approval_token": false,
+      "description": "Executive role - full access, no approval needed"
+    },
+    "INTELLIGENCE_RND": {
+      "read": [
+        "web.search",
+        "web.fetch",
+        "web.render_fetch",
+        "web.head"
+      ],
+      "write": [],
+      "requires_approval_token": false,
+      "description": "Intelligence/R&D - read-only web access for research"
+    },
+    "OPS": {
+      "read": [
+        "web.search",
+        "web.fetch",
+        "web.render_fetch",
+        "web.head",
+        "stripe.read"
+      ],
+      "write": [
+        "email.send"
+      ],
+      "requires_approval_token": true,
+      "description": "Operations - can send emails with approval"
+    },
+    "MARKETING": {
+      "read": [
+        "web.search",
+        "web.fetch",
+        "web.head"
+      ],
+      "write": [],
+      "requires_approval_token": true,
+      "description": "Marketing - read access only, write requires approval"
+    },
+    "SCRAPER": {
+      "read": [
+        "web.fetch",
+        "web.render_fetch",
+        "web.head"
+      ],
+      "write": [],
+      "requires_approval_token": false,
+      "rate_limit_mode": "strict",
+      "description": "Web scraper - strict rate limits, read-only"
+    },
+    "FINANCE": {
+      "read": [
+        "stripe.read",
+        "web.fetch",
+        "web.head"
+      ],
+      "write": [
+        "stripe.write"
+      ],
+      "requires_approval_token": true,
+      "description": "Finance - Stripe access with approval required for writes"
+    },
+    "SYSTEM": {
+      "read": [
+        "web.search",
+        "web.fetch",
+        "web.head"
+      ],
+      "write": [],
+      "requires_approval_token": false,
+      "description": "System - maintenance only, no business writes"
+    },
+    "DEFAULT": {
+      "read": [],
+      "write": [],
+      "requires_approval_token": true,
+      "description": "Default role - no permissions"
+    }
+  },
+  "actions": {
+    "web.search": {
+      "type": "read",
+      "requires_internet": true,
+      "risk_level": "low"
+    },
+    "web.fetch": {
+      "type": "read",
+      "requires_internet": true,
+      "risk_level": "low"
+    },
+    "web.render_fetch": {
+      "type": "read",
+      "requires_internet": true,
+      "risk_level": "medium",
+      "uses_browser": true
+    },
+    "web.head": {
+      "type": "read",
+      "requires_internet": true,
+      "risk_level": "low"
+    },
+    "web.post": {
+      "type": "write",
+      "requires_internet": true,
+      "risk_level": "high",
+      "requires_kill_switch_check": true
+    },
+    "web.download": {
+      "type": "write",
+      "requires_internet": true,
+      "risk_level": "high",
+      "quarantine_required": true
+    },
+    "stripe.read": {
+      "type": "read",
+      "requires_internet": true,
+      "risk_level": "low"
+    },
+    "stripe.write": {
+      "type": "write",
+      "requires_internet": true,
+      "risk_level": "critical",
+      "requires_kill_switch_check": true,
+      "requires_approval_token": true
+    },
+    "email.send": {
+      "type": "write",
+      "requires_internet": true,
+      "risk_level": "high",
+      "requires_kill_switch_check": true
+    },
+    "social.post": {
+      "type": "write",
+      "requires_internet": true,
+      "risk_level": "high",
+      "requires_kill_switch_check": true
+    }
+  }
+}

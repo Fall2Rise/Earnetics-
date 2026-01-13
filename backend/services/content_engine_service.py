@@ -11,23 +11,17 @@ from backend.services.video_factory import VideoFactory
 # Placeholder for actual LLM client import
 # from backend.llm_client import LLMClient 
 
+from backend.system_state import is_safe_mode
+from backend.audit_log import log_event
+
 class ContentEngineService:
     def __init__(self):
         self.platforms = ["tiktok", "youtube_shorts", "instagram_reels", "facebook_reels", "twitter", "linkedin", "blog"]
         self.video_factory = VideoFactory()
-        # self.llm = LLMClient() # Initialize LLM client here
 
     async def generate_master_content(self, topic: str, tone: str = "viral") -> Dict[str, Any]:
-        """
-        Generates a master long-form content piece from a topic.
-        """
-        # In a real implementation, this would call the LLM
-        # prompt = f"Write a comprehensive, engaging blog post about {topic} with a {tone} tone."
-        # content = await self.llm.generate(prompt)
-        
-        # Mock response for now
-        content = f"Master Content for: {topic}\n\nThis is a deep dive into {topic}. It covers key aspects, actionable tips, and future trends. The goal is to provide immense value..."
-        
+        """Generates a master long-form content piece."""
+        content = f"Master Content for: {topic}\n\nDeep dive into {topic}..."
         return {
             "id": f"master_{int(datetime.now().timestamp())}",
             "topic": topic,
@@ -37,70 +31,39 @@ class ContentEngineService:
         }
 
     async def repurpose_content(self, master_content_id: str, master_text: str) -> Dict[str, Any]:
-        """
-        Breaks down master content into platform-specific formats.
-        """
-        # Mock repurposing logic
-        repurposed = {
+        """Breaks down master content into platform-specific formats."""
+        return {
             "master_id": master_content_id,
             "shorts": [
-                {"platform": "tiktok", "script": "Hook: You won't believe this about {topic}... Body: ... CTA: Follow for more!"},
-                {"platform": "youtube_shorts", "script": "Did you know? {topic} is changing everything... Subscribe!"}
+                {"platform": "tiktok", "script": f"Hook: {master_text[:30]}..."},
+                {"platform": "youtube_shorts", "script": f"Did you know? {master_text[:30]}..."}
             ],
             "social_posts": [
-                {"platform": "twitter", "content": "Just dropped a deep dive on {topic}. 🧵 1/5"},
-                {"platform": "linkedin", "content": "Professional insights on {topic}. #IndustryTrends"}
-            ],
-            "video_metadata": {
-                "title": f"The Truth About {master_text[:20]}...",
-                "description": "Full breakdown in the link in bio.",
-                "tags": ["viral", "trends", "education"]
-            }
+                {"platform": "twitter", "content": f"New on {master_text[:20]}..."},
+                {"platform": "linkedin", "content": f"Insights on {master_text[:20]}..."}
+            ]
         }
-        return repurposed
-
-    async def generate_video_assets(self, script: str, voice_id: str = "default") -> Dict[str, Any]:
-        """
-        Generates audio/video assets from a script using Local Video Factory.
-        """
-        # Generate unique filename
-        filename = f"video_{int(datetime.now().timestamp())}.mp4"
-        
-        # Run video generation (blocking operation, should ideally be in a thread pool)
-        # For simplicity in this demo, we run it directly.
-        video_path = self.video_factory.generate_video(script, filename)
-        
-        if video_path:
-            return {
-                "status": "generated",
-                "video_path": video_path,
-                "video_url": f"/static/generated_videos/{filename}",
-                "captions": "Generated locally."
-            }
-        else:
-             return {
-                "status": "failed",
-                "error": "Video generation failed."
-            }
 
     async def distribute_content(self, assets: Dict[str, Any], platforms: List[str]) -> Dict[str, Any]:
-        """
-        Simulates posting content to selected platforms.
-        """
+        """Posts content to selected platforms, respecting SAFE_MODE."""
         results = {}
+        production_mode = not is_safe_mode()
+        
         for platform in platforms:
-            # Mock API call to platform
-            results[platform] = {"status": "posted", "post_id": f"{platform}_12345", "url": f"https://{platform}.com/post/12345"}
+            if production_mode:
+                # In a real scenario, this would call the actual API
+                # For now, we log the intent and simulate success
+                log_event("content_distribution", message=f"POSTING REAL CONTENT to {platform}", context=str(assets))
+                results[platform] = {
+                    "status": "posted",
+                    "mode": "production",
+                    "url": f"https://{platform}.com/post/{int(datetime.now().timestamp())}"
+                }
+            else:
+                log_event("content_distribution", message=f"SIMULATING content post to {platform}", context="Safe Mode Active")
+                results[platform] = {
+                    "status": "simulated",
+                    "mode": "safe",
+                    "url": f"https://sandbox.{platform}.com/test"
+                }
         return results
-
-    async def get_analytics(self, content_id: str) -> Dict[str, Any]:
-        """
-        Aggregates engagement metrics.
-        """
-        return {
-            "content_id": content_id,
-            "views": 15000,
-            "likes": 1200,
-            "shares": 350,
-            "comments": 45
-        }

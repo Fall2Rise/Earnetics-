@@ -52,9 +52,17 @@ export const IntelligencePanel: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     void refresh();
+    // Set up polling to refresh intelligence every 15 seconds
+    const intervalId = setInterval(() => {
+      if (mountedRef.current) {
+        void refresh();
+      }
+    }, 15000);
     return () => {
       mountedRef.current = false;
+      clearInterval(intervalId);
     };
   }, [refresh]);
 

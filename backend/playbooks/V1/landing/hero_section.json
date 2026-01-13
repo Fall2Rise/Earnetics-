@@ -1,0 +1,14 @@
+{
+  "template_id": "LANDING_HERO",
+  "version": "1.0.0",
+  "section_type": "hero",
+  "template": "# [Headline]\n\n[Subheadline]\n\n[Key Benefit 1]\n[Key Benefit 2]\n[Key Benefit 3]\n\n[Call to Action Button: Get Started / Book Call / See Examples]",
+  "variables": {
+    "Headline": "Clear value proposition",
+    "Subheadline": "Supporting statement",
+    "Key Benefit 1": "Primary benefit",
+    "Key Benefit 2": "Secondary benefit",
+    "Key Benefit 3": "Tertiary benefit"
+  }
+}
+

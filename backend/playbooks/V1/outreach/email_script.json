@@ -1,0 +1,22 @@
+{
+  "template_id": "EMAIL_SCRIPT",
+  "version": "1.0.0",
+  "script_type": "email",
+  "subject_template": "[Offer Name] for [Their Context]",
+  "body_template": "Hi [Name],\n\nSaw you're [context]. Most [target_buyer] struggle with [pain_point].\n\nI've helped [X] [target_buyer] [achievement] in the last 90 days. Here's what I deliver:\n\n[deliverables_list]\n\nPrice: $[price] (or $[deposit] deposit, $[remaining] on delivery)\n\nWant to see [proof]? Reply '[call_to_action]' and I'll send them.\n\n[Your Name]",
+  "variables": {
+    "context": "what they're doing",
+    "target_buyer": "who you help",
+    "pain_point": "main problem",
+    "X": "number of clients",
+    "achievement": "what they achieved",
+    "deliverables_list": "bulleted list of deliverables",
+    "price": "full price",
+    "deposit": "deposit amount",
+    "remaining": "remaining amount",
+    "proof": "examples/case studies",
+    "call_to_action": "EXAMPLES or similar",
+    "Your Name": "your name"
+  }
+}
+

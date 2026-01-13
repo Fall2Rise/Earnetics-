@@ -19,7 +19,13 @@ _AUDIT_LOGGER_NAME = "audit"
 _audit_logger = logging.getLogger(_AUDIT_LOGGER_NAME)
 
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-DEFAULT_DB_PATH = Path(os.getenv("AUDIT_LOG_DB", "audit_log.db"))
+def _normalize_env_path(env_value: Optional[str], default: str) -> Path:
+    """Normalize path from environment variable, converting backslashes to forward slashes."""
+    if not env_value:
+        return Path(default)
+    return Path(env_value.replace("\\", "/"))
+
+DEFAULT_DB_PATH = _normalize_env_path(os.getenv("AUDIT_LOG_DB"), "audit_log.db")
 
 
 def _utcnow() -> str:
@@ -152,7 +158,15 @@ class AuditLogStore:
         return results
 
 
+
 _store = AuditLogStore()
+_broadcast_callback = None
+
+
+def set_broadcast_callback(callback):
+    global _broadcast_callback
+    _broadcast_callback = callback
+
 
 
 def log_event(
@@ -164,6 +178,50 @@ def log_event(
     message: Optional[str] = None,
     **extra: Any,
 ) -> None:
+    # Learn from this action via Evolution Engine (non-blocking)
+    # Moved to background to prevent blocking the audit log
+    try:
+        import threading
+        from backend.atom_evolution_engine import AtomEvolutionEngine
+        
+        def _learn_async():
+            """Background learning to avoid blocking audit log"""
+            try:
+                evolution_engine = getattr(log_event, "_evolution_engine", None)
+                if evolution_engine is None:
+                    evolution_engine = AtomEvolutionEngine()
+                    log_event._evolution_engine = evolution_engine
+                
+                if agent:  # Only learn from agent actions
+                    feedback = evolution_engine.learn_from_action(
+                        agent=agent,
+                        action=action,
+                        context=message or "",
+                        status=status,
+                        details=extra
+                    )
+                    if feedback and _broadcast_callback:
+                        # Broadcast evolution feedback
+                        try:
+                            _broadcast_callback({
+                                "type": "evolution_feedback",
+                                "payload": feedback
+                            })
+                        except Exception:
+                            pass  # Don't fail if broadcast fails
+            except Exception as e:
+                # Don't fail if evolution learning fails
+                import logging
+                logging.getLogger(__name__).debug(f"Evolution learning failed: {e}")
+        
+        # Run learning in background thread to avoid blocking
+        if agent:  # Only spawn thread for agent actions
+            thread = threading.Thread(target=_learn_async, daemon=True)
+            thread.start()
+    except Exception as e:
+        # Don't fail if evolution learning setup fails
+        import logging
+        logging.getLogger(__name__).debug(f"Evolution learning setup failed: {e}")
     payload: Dict[str, Any] = {
         "action": action,
         "status": status,
@@ -191,6 +249,14 @@ def log_event(
     )
     try:
         _store.record(record)
+        if _broadcast_callback:
+            try:
+                _broadcast_callback({
+                    "type": "AUDIT_LOG",
+                    "payload": asdict(record)
+                })
+            except Exception:
+                pass
     except Exception as exc:  # pragma: no cover - defensive
         _audit_logger.error("audit_store_error", extra={"error": str(exc), "action": action})
 

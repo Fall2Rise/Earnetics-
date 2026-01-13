@@ -1,9 +1,14 @@
 import Database from 'better-sqlite3';
+import { rebuild_read_models } from './readModels';
 export class EventStore {
     db;
+    readModels;
     constructor(dbPath) {
         this.db = new Database(dbPath);
         this.init();
+        // Rebuild read models on startup
+        const allEvents = this.getEvents();
+        this.readModels = rebuild_read_models(allEvents);
     }
     init() {
         this.db.exec(`
@@ -25,6 +30,8 @@ export class EventStore {
       VALUES (?, ?, ?, ?, ?)
     `);
         stmt.run(event.id, event.type, JSON.stringify(event.payload), event.timestamp, event.meta ? JSON.stringify(event.meta) : null);
+        // Update read models in memory
+        this.readModels.handleEvent(event);
     }
     getEvents(since = 0, until = Date.now(), limit = 1000) {
         const stmt = this.db.prepare(`

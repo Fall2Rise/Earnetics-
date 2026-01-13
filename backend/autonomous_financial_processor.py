@@ -41,6 +41,9 @@ class AutonomousFinancialProcessor:
         self.payout_batch_interval = 3600  # Batch payouts every hour
         self.last_payout_check = 0
         
+        # Ensure database schema exists
+        self._ensure_schema()
+        
         # Configure Stripe
         config_result = self.stripe_processor.configure_from_environment()
         if config_result.get("success"):
@@ -52,6 +55,90 @@ class AutonomousFinancialProcessor:
                 "Payouts will be queued until configuration is complete."
             )
             self.stripe_configured = False
+    
+    def _ensure_schema(self) -> None:
+        """Ensure financial_operations and reinvestment_operations tables exist with correct schema"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Create financial_operations table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS financial_operations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    transaction_id TEXT,
+                    gross_revenue REAL NOT NULL,
+                    owner_payout REAL NOT NULL,
+                    reinvestment_amount REAL NOT NULL,
+                    currency TEXT NOT NULL DEFAULT 'usd',
+                    payout_status TEXT NOT NULL DEFAULT 'pending',
+                    reinvestment_status TEXT NOT NULL DEFAULT 'pending',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+            
+            # Check if currency column exists, add if missing (for existing databases)
+            cursor.execute("PRAGMA table_info(financial_operations)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "currency" not in columns:
+                cursor.execute("ALTER TABLE financial_operations ADD COLUMN currency TEXT NOT NULL DEFAULT 'usd'")
+            
+            # Create reinvestment_operations table
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS reinvestment_operations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    amount REAL NOT NULL,
+                    allocation_category TEXT,
+                    purpose TEXT,
+                    remaining_amount REAL NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'available',
+                    priority TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+            
+            # Check if priority column exists, add if missing (for existing databases)
+            cursor.execute("PRAGMA table_info(reinvestment_operations)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "priority" not in columns:
+                cursor.execute("ALTER TABLE reinvestment_operations ADD COLUMN priority TEXT")
+            if "created_at" not in columns:
+                cursor.execute("ALTER TABLE reinvestment_operations ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")
+            if "updated_at" not in columns:
+                cursor.execute("ALTER TABLE reinvestment_operations ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''")
+            
+            # Create transactions table if it doesn't exist
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS transactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    transaction_id TEXT,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL DEFAULT 'usd',
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    processed INTEGER DEFAULT 0,
+                    processed_at TEXT
+                )
+                """
+            )
+            
+            # Check if processed columns exist in transactions table
+            cursor.execute("PRAGMA table_info(transactions)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "processed" not in columns:
+                cursor.execute("ALTER TABLE transactions ADD COLUMN processed INTEGER DEFAULT 0")
+            if "processed_at" not in columns:
+                cursor.execute("ALTER TABLE transactions ADD COLUMN processed_at TEXT")
+            if "currency" not in columns:
+                cursor.execute("ALTER TABLE transactions ADD COLUMN currency TEXT NOT NULL DEFAULT 'usd'")
+            
+            conn.commit()
 
     async def start_autonomous_processing(self):
         """Start the autonomous financial processing loop"""
@@ -104,26 +191,28 @@ class AutonomousFinancialProcessor:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 
+                now = datetime.now().isoformat()
                 cursor.execute(
                     """
                     INSERT INTO financial_operations 
                     (transaction_id, gross_revenue, owner_payout, reinvestment_amount, 
-                     currency, payout_status, reinvestment_status)
-                    VALUES (?, ?, ?, ?, ?, 'pending', 'pending')
+                     currency, payout_status, reinvestment_status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, 'pending', 'pending', ?, ?)
                     """,
-                    (transaction_id, amount, owner_payout, reinvestment, currency),
+                    (transaction_id, amount, owner_payout, reinvestment, currency, now, now),
                 )
                 
                 financial_op_id = cursor.lastrowid
                 
                 # Add to reinvestment fund
+                now = datetime.now().isoformat()
                 cursor.execute(
                     """
                     INSERT INTO reinvestment_operations 
-                    (amount, allocation_category, purpose, remaining_amount, status)
-                    VALUES (?, 'operations', 'Automatic 20% reinvestment', ?, 'available')
+                    (amount, allocation_category, purpose, remaining_amount, status, created_at, updated_at)
+                    VALUES (?, 'operations', 'Automatic 20% reinvestment', ?, 'available', ?, ?)
                     """,
-                    (reinvestment, reinvestment),
+                    (reinvestment, reinvestment, now, now),
                 )
                 
                 # Mark transaction as processed
@@ -196,18 +285,37 @@ class AutonomousFinancialProcessor:
     async def _batch_process_payouts(self):
         """Batch process small payouts that are below threshold"""
         try:
+            # Ensure schema is up to date before querying
+            self._ensure_schema()
+            
             # Get all pending payouts below threshold
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT id, owner_payout, currency
-                    FROM financial_operations
-                    WHERE payout_status = 'pending' 
-                    AND owner_payout < ?
-                    """,
-                    (self.min_payout_threshold,),
-                )
+                # Check if currency column exists
+                cursor.execute("PRAGMA table_info(financial_operations)")
+                columns = {row[1] for row in cursor.fetchall()}
+                
+                if "currency" in columns:
+                    cursor.execute(
+                        """
+                        SELECT id, owner_payout, currency
+                        FROM financial_operations
+                        WHERE payout_status = 'pending' 
+                        AND owner_payout < ?
+                        """,
+                        (self.min_payout_threshold,),
+                    )
+                else:
+                    # Fallback: select without currency (default to usd)
+                    cursor.execute(
+                        """
+                        SELECT id, owner_payout
+                        FROM financial_operations
+                        WHERE payout_status = 'pending' 
+                        AND owner_payout < ?
+                        """,
+                        (self.min_payout_threshold,),
+                    )
                 pending = cursor.fetchall()
             
             if not pending:
@@ -215,8 +323,16 @@ class AutonomousFinancialProcessor:
             
             # Group by currency
             by_currency = {}
-            for op_id, amount, currency in pending:
-                currency = currency or "usd"
+            for row in pending:
+                if len(row) == 3:
+                    # Has currency column
+                    op_id, amount, currency = row
+                    currency = currency or "usd"
+                else:
+                    # No currency column, default to usd
+                    op_id, amount = row
+                    currency = "usd"
+                
                 if currency not in by_currency:
                     by_currency[currency] = []
                 by_currency[currency].append((op_id, amount))
@@ -266,6 +382,9 @@ class AutonomousFinancialProcessor:
         """Continuously sync payout statuses with Stripe"""
         while self.running:
             try:
+                # Ensure schema is up to date before syncing
+                self._ensure_schema()
+                
                 if not self.stripe_configured:
                     await asyncio.sleep(300)  # Check every 5 minutes
                     continue
@@ -357,19 +476,22 @@ class AutonomousFinancialProcessor:
                 cursor = conn.cursor()
                 
                 # Allocate funds
+                now = datetime.now().isoformat()
                 cursor.execute(
                     """
                     INSERT INTO reinvestment_operations 
                     (amount, allocation_category, purpose, remaining_amount, 
-                     status, priority)
-                    VALUES (?, ?, ?, ?, 'allocated', ?)
+                     status, priority, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, 'allocated', ?, ?, ?)
                     """,
                     (
                         decision["amount"],
                         decision["category"],
                         decision["purpose"],
                         decision["amount"],
-                        decision["priority"],
+                        decision.get("priority"),
+                        now,
+                        now,
                     ),
                 )
                 

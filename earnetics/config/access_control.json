@@ -1,0 +1,81 @@
+{
+  "roles": {
+    "executive": {
+      "permissions": [
+        "truth_library.read",
+        "truth_library.write",
+        "truth_library.validate",
+        "lead_vault.read",
+        "lead_vault.export",
+        "exec.decide",
+        "deploy.run"
+      ]
+    },
+    "intelligence_scout": {
+      "permissions": [
+        "knowledge.search",
+        "knowledge.fetch",
+        "truth_library.read",
+        "opportunity.create"
+      ]
+    },
+    "intelligence_verifier": {
+      "permissions": [
+        "knowledge.search",
+        "knowledge.fetch",
+        "truth_library.read",
+        "truth_library.write",
+        "opportunity.verify"
+      ]
+    },
+    "intelligence_synthesizer": {
+      "permissions": [
+        "knowledge.search",
+        "truth_library.read",
+        "truth_library.write",
+        "opportunity.synthesize"
+      ]
+    },
+    "intelligence_experimenter": {
+      "permissions": [
+        "truth_library.read",
+        "experiment.run",
+        "telemetry.read"
+      ]
+    },
+    "intelligence_librarian": {
+      "permissions": [
+        "truth_library.read",
+        "truth_library.write",
+        "truth_library.validate",
+        "truth_library.deprecate",
+        "knowledge.search"
+      ]
+    },
+    "agent": {
+      "permissions": [
+        "knowledge.search",
+        "knowledge.fetch",
+        "knowledge.remember",
+        "truth_library.read",
+        "radio.subscribe",
+        "radio.latest"
+      ]
+    },
+    "marketing": {
+      "permissions": [
+        "lead_vault.read",
+        "lead_vault.export",
+        "telemetry.read"
+      ]
+    }
+  },
+  "default_role": "agent",
+  "audit_required": [
+    "lead_vault.read",
+    "lead_vault.write",
+    "lead_vault.export"
+  ],
+  "suppression_enforced": true,
+  "retention_days": 730
+}

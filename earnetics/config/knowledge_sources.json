@@ -1,0 +1,259 @@
+{
+  "sources": [
+    {
+      "source_id": "earnetics_vault",
+      "tier": 0,
+      "enabled": true,
+      "trust_score": 100,
+      "rate_limit_per_min": 1000,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": false,
+      "offline_allowed": true,
+      "description": "Internal canonical memory: SOPs, prompts, decisions, logs, postmortems, agent learnings"
+    },
+    {
+      "source_id": "wikidata",
+      "tier": 1,
+      "enabled": true,
+      "trust_score": 85,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Structured general knowledge - Wikidata"
+    },
+    {
+      "source_id": "wikipedia",
+      "tier": 1,
+      "enabled": true,
+      "trust_score": 80,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Structured general knowledge - Wikipedia"
+    },
+    {
+      "source_id": "openalex",
+      "tier": 2,
+      "enabled": true,
+      "trust_score": 90,
+      "rate_limit_per_min": 100,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Scholarly research backbone - OpenAlex"
+    },
+    {
+      "source_id": "crossref",
+      "tier": 2,
+      "enabled": true,
+      "trust_score": 90,
+      "rate_limit_per_min": 50,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Scholarly research backbone - Crossref"
+    },
+    {
+      "source_id": "arxiv",
+      "tier": 2,
+      "enabled": true,
+      "trust_score": 85,
+      "rate_limit_per_min": 30,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Scholarly research backbone - arXiv"
+    },
+    {
+      "source_id": "semantic_scholar",
+      "tier": 2,
+      "enabled": true,
+      "trust_score": 88,
+      "rate_limit_per_min": 100,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Scholarly research backbone - Semantic Scholar"
+    },
+    {
+      "source_id": "nist",
+      "tier": 3,
+      "enabled": true,
+      "trust_score": 95,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Standards/Engineering truth - NIST"
+    },
+    {
+      "source_id": "rfc",
+      "tier": 3,
+      "enabled": true,
+      "trust_score": 95,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Standards/Engineering truth - IETF RFCs"
+    },
+    {
+      "source_id": "w3c",
+      "tier": 3,
+      "enabled": true,
+      "trust_score": 90,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Standards/Engineering truth - W3C/WHATWG"
+    },
+    {
+      "source_id": "mitre_attack",
+      "tier": 3,
+      "enabled": true,
+      "trust_score": 92,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Standards/Engineering truth - MITRE ATT&CK"
+    },
+    {
+      "source_id": "github_docs",
+      "tier": 4,
+      "enabled": true,
+      "trust_score": 75,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Code/API knowledge - GitHub docs"
+    },
+    {
+      "source_id": "stackoverflow",
+      "tier": 4,
+      "enabled": true,
+      "trust_score": 60,
+      "rate_limit_per_min": 30,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Code/API knowledge - Stack Overflow (lower trust)"
+    },
+    {
+      "source_id": "gutenberg",
+      "tier": 5,
+      "enabled": true,
+      "trust_score": 85,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Books/Archives - Project Gutenberg"
+    },
+    {
+      "source_id": "open_library",
+      "tier": 5,
+      "enabled": true,
+      "trust_score": 80,
+      "rate_limit_per_min": 60,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Books/Archives - Open Library"
+    },
+    {
+      "source_id": "wayback",
+      "tier": 5,
+      "enabled": true,
+      "trust_score": 70,
+      "rate_limit_per_min": 30,
+      "capabilities": {
+        "search": true,
+        "fulltext": true,
+        "fetch": true
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Books/Archives - Internet Archive Wayback Machine (snapshots + citations)"
+    },
+    {
+      "source_id": "gdelt",
+      "tier": 6,
+      "enabled": true,
+      "trust_score": 65,
+      "rate_limit_per_min": 10,
+      "capabilities": {
+        "search": true,
+        "fulltext": false,
+        "fetch": false
+      },
+      "requires_internet": true,
+      "offline_allowed": false,
+      "description": "Raw web at scale - GDELT (for Knowledge Radio)"
+    }
+  ]
+}

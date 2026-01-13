@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, getAuthHeaders } from './config';
 
 export interface Agent {
   id: string;
@@ -26,7 +26,9 @@ export interface AgentStatusSummary {
 }
 
 export const getAgentStatus = async (): Promise<AgentStatusSummary> => {
-  const response = await fetch(`${API_BASE_URL}/api/agents/real_status`);
+  // Use relative URL (Vite proxy handles it) or explicit API_BASE_URL
+  const url = API_BASE_URL ? `${API_BASE_URL}/api/agents/real_status` : '/api/agents/real_status';
+  const response = await fetch(url, { headers: getAuthHeaders() });
 
   if (!response.ok) {
     throw new Error(`Unable to load agent status (${response.status})`);
@@ -70,7 +72,7 @@ export interface AgentUpdateRequest {
 export const updateAgent = async (payload: AgentUpdateRequest): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/api/agents/update`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -82,7 +84,7 @@ export const updateAgent = async (payload: AgentUpdateRequest): Promise<void> =>
 export const purgeAgentMemory = async (namespace: string): Promise<number> => {
   const response = await fetch(`${API_BASE_URL}/api/agents/memory`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ namespace }),
   });
   if (!response.ok) {

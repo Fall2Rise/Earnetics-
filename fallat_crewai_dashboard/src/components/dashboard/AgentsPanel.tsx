@@ -45,9 +45,17 @@ export const AgentsPanel: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     void refresh();
+    // Set up polling to refresh agents every 10 seconds
+    const intervalId = setInterval(() => {
+      if (mountedRef.current) {
+        void refresh();
+      }
+    }, 10000);
     return () => {
       mountedRef.current = false;
+      clearInterval(intervalId);
     };
   }, [refresh]);
 

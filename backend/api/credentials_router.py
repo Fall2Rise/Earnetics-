@@ -7,8 +7,11 @@ from pydantic import BaseModel, Field
 
 from backend.audit_log import log_event
 from backend.credential_vault import CredentialVault, CredentialVaultError
+from backend.services.credential_suggestions_service import CredentialSuggestionsService
 
 router = APIRouter(prefix="/api/credentials", tags=["credentials"])
+
+suggestions_service = CredentialSuggestionsService()
 
 vault: Optional[CredentialVault] = None
 
@@ -175,3 +178,81 @@ def delete_service(service: str) -> Dict[str, Any]:
         removed=removed,
     )
     return {"status": "deleted", "service": service, "removed": removed}
+
+
+@router.get("/suggestions")
+def get_credential_suggestions(
+    revenue_stream: Optional[str] = None,
+    min_priority: Optional[int] = None
+) -> Dict[str, Any]:
+    """Get suggested credentials based on revenue opportunities"""
+    store = _get_vault()
+    
+    # Get all suggestions
+    suggestions = suggestions_service.get_suggestions(
+        revenue_stream=revenue_stream,
+        min_priority=min_priority
+    )
+    
+    # Check which credentials are already added
+    existing_credentials = {}
+    try:
+        records = store.list_secrets()
+        for record in records:
+            key = f"{record.service}/{record.name}"
+            existing_credentials[key] = True
+    except Exception:
+        pass  # If vault is not available, continue without checking
+    
+    # Mark suggestions as added if credential exists
+    enriched_suggestions = []
+    for suggestion in suggestions:
+        key = f"{suggestion['service']}/{suggestion['name']}"
+        is_added = key in existing_credentials
+        enriched_suggestions.append({
+            **suggestion,
+            "is_added": is_added,
+            "status": "added" if is_added else suggestion.get("status", "suggested")
+        })
+    
+    return {
+        "suggestions": enriched_suggestions,
+        "total": len(enriched_suggestions),
+        "added_count": sum(1 for s in enriched_suggestions if s["is_added"]),
+        "pending_count": sum(1 for s in enriched_suggestions if not s["is_added"])
+    }
+
+
+@router.post("/suggestions/discover")
+def discover_revenue_credentials(
+    revenue_stream: str,
+    required_credentials: list[Dict[str, str]],
+    discovered_by: str = "Agent"
+) -> Dict[str, Any]:
+    """Discover and add credential suggestions for a new revenue stream"""
+    result = suggestions_service.discover_revenue_stream_credentials(
+        revenue_stream=revenue_stream,
+        required_credentials=required_credentials,
+        discovered_by=discovered_by
+    )
+    log_event(
+        "credentials.discover",
+        status="success",
+        revenue_stream=revenue_stream,
+        suggestions_added=result.get("suggestions_added", 0)
+    )
+    return result
+
+
+@router.post("/suggestions/mark-added")
+def mark_suggestion_added(identifier: CredentialIdentifier) -> Dict[str, Any]:
+    """Mark a suggestion as added"""
+    suggestions_service.mark_as_added(identifier.service, identifier.name)
+    return {"status": "marked", "service": identifier.service, "name": identifier.name}
+
+
+@router.post("/suggestions/dismiss")
+def dismiss_suggestion(identifier: CredentialIdentifier) -> Dict[str, Any]:
+    """Dismiss a credential suggestion"""
+    suggestions_service.dismiss_suggestion(identifier.service, identifier.name)
+    return {"status": "dismissed", "service": identifier.service, "name": identifier.name}

@@ -1,8 +1,6 @@
 # FALLAT CREWAI DIGITAL AI CORPORATION - DOCKER COMPOSE
 # Production-ready containerized deployment
 
-version: '3.8'
-
 services:
   fallat-ai-corporation:
     build: .
@@ -22,14 +20,16 @@ services:
       - LOG_LEVEL=INFO
       - AUTONOMY_SCHEDULER_ENABLED=true
       - AUTONOMY_WORKER_ENABLED=true
+      - PRIME_DIRECTIVE_HMAC_SECRET=${PRIME_DIRECTIVE_HMAC_SECRET}
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY:-1}
     env_file:
       - .env
     volumes:
-      - ./data:/data  # Persistent database storage
-      - ./logs:/app/logs  # Persistent logs
+      - ./data:/data # Persistent database storage
+      - ./logs:/app/logs # Persistent logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

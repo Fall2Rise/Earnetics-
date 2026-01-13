@@ -108,6 +108,10 @@ class RevenueLoopRunner:
 
     def __init__(self) -> None:
         logger.info("Initializing RevenueLoopRunner...")
+        
+        # Configure CrewAI to use Ollama instead of OpenAI
+        self._configure_crewai_llm()
+        
         self.agents_cfg = _load_yaml(AGENTS_CONFIG_PATH)
         self.crews_cfg = _load_yaml(CREWS_CONFIG_PATH)
 
@@ -121,6 +125,31 @@ class RevenueLoopRunner:
             )
 
         logger.info("RevenueLoopRunner initialized. Flows available: %s", list(self.flows.keys()))
+    
+    def _configure_crewai_llm(self) -> None:
+        """Configure CrewAI to use Ollama instead of OpenAI."""
+        # Get Ollama settings from environment
+        ollama_base_url = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST") or "http://localhost:11434"
+        ollama_model = os.getenv("OLLAMA_MODEL") or os.getenv("LLM_MODEL") or "llama3.1:8b"
+        
+        # Unset OpenAI API key to prevent CrewAI from defaulting to OpenAI
+        if "OPENAI_API_KEY" in os.environ:
+            logger.warning("OPENAI_API_KEY is set but will be ignored. Using Ollama instead.")
+        
+        # Set environment variables that CrewAI/LangChain will recognize for Ollama
+        # CrewAI uses LangChain under the hood, which needs these settings
+        # Note: LangChain ChatOpenAI expects /v1 endpoint
+        os.environ["OPENAI_API_BASE"] = f"{ollama_base_url}/v1"
+        os.environ["OPENAI_API_KEY"] = "ollama"  # Dummy key, not used by Ollama
+        os.environ["OPENAI_MODEL_NAME"] = ollama_model
+        # Also set as LLM_MODEL for CrewAI compatibility
+        if "LLM_MODEL" not in os.environ:
+            os.environ["LLM_MODEL"] = ollama_model
+        
+        # Also set LangChain-specific Ollama variables
+        os.environ["LANGCHAIN_API_KEY"] = ""  # Prevent LangChain from trying to use cloud
+        
+        logger.info(f"Configured CrewAI to use Ollama: {ollama_base_url} with model {ollama_model}")
 
     def run(self, market_context: Dict[str, Any]) -> RevenueLoopResult:
         """
@@ -176,13 +205,53 @@ class RevenueLoopRunner:
         agents = [self._build_agent(agent_key) for agent_key in crew_def.get("agents", [])]
         tasks = [self._build_task(task_key) for task_key in crew_def.get("tasks", [])]
 
-        crew = Crew(
-            agents=agents,
-            tasks=tasks,
-            process=Process.sequential,
-            max_rpm=crew_def.get("max_rpm", 4),
-            verbose=True,
-        )
+        # Explicitly configure Crew to use Ollama LLM
+        try:
+            from langchain_openai import ChatOpenAI
+            
+            # Create Ollama LLM instance using ChatOpenAI with Ollama base URL
+            ollama_base_url = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST") or "http://localhost:11434"
+            ollama_model = os.getenv("OLLAMA_MODEL") or os.getenv("LLM_MODEL") or "llama3.1:8b"
+            
+            # Use ChatOpenAI with Ollama base URL (LangChain compatibility)
+            # Ollama API expects model name with tag (e.g., "llama3.1:8b")
+            # But if that fails, try without tag
+            try:
+                llm = ChatOpenAI(
+                    base_url=f"{ollama_base_url}/v1",
+                    api_key="ollama",  # Dummy key, not used by Ollama
+                    model=ollama_model,
+                    temperature=0.7,
+                )
+            except Exception as e:
+                # If model with tag fails, try without tag
+                logger.warning(f"Failed to use model {ollama_model}, trying base name: {e}")
+                base_model = ollama_model.split(":")[0] if ":" in ollama_model else ollama_model
+                llm = ChatOpenAI(
+                    base_url=f"{ollama_base_url}/v1",
+                    api_key="ollama",
+                    model=base_model,
+                    temperature=0.7,
+                )
+            
+            crew = Crew(
+                agents=agents,
+                tasks=tasks,
+                process=Process.sequential,
+                llm=llm,  # Explicitly set LLM to use Ollama
+                max_rpm=crew_def.get("max_rpm", 4),
+                verbose=True,
+            )
+        except ImportError:
+            # Fallback: CrewAI will use environment variables we set in __init__
+            logger.warning("langchain_openai not available, relying on environment variables for LLM config")
+            crew = Crew(
+                agents=agents,
+                tasks=tasks,
+                process=Process.sequential,
+                max_rpm=crew_def.get("max_rpm", 4),
+                verbose=True,
+            )
 
         logger.info("Running crew '%s' for step '%s'", crew_name, step.get("name", crew_name))
         result = crew.kickoff(inputs=state)

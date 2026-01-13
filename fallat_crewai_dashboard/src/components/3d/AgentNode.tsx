@@ -209,12 +209,26 @@ export const AgentNode: React.FC<AgentNodeProps> = ({ agent, onClick, isSelected
       />
 
       {agent.status === 'active' && (
-        <pointLight
-          color={agent.color}
-          intensity={0.8}
-          distance={8}
-          decay={2}
-        />
+        <>
+          <pointLight
+            color={agent.color}
+            intensity={1.2}
+            distance={10}
+            decay={2}
+          />
+          {/* Animated energy rings */}
+          {[0, 1, 2].map((i) => (
+            <mesh key={`ring-${i}`} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.6 + i * 0.2, 0.02, 8, 32]} />
+              <meshBasicMaterial
+                color={agent.color}
+                transparent
+                opacity={0.3 - i * 0.1}
+                blending={THREE.AdditiveBlending}
+              />
+            </mesh>
+          ))}
+        </>
       )}
     </group>
   );

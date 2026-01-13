@@ -5,6 +5,9 @@ export interface ApprovalRequest {
   job_id: string;
   handler: string;
   payload: Record<string, unknown>;
+  description?: string | null;
+  context?: string | null;
+  impact?: string | null;
   status: string;
   created_at: string;
   decided_at?: string | null;
@@ -26,11 +29,11 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-export const listApprovals = async (status?: string, limit = 100): Promise<ApprovalRequest[]> => {
+export const listApprovals = async (status?: string, limit = 100, signal?: AbortSignal): Promise<ApprovalRequest[]> => {
   const url = new URL(approvalsUrl);
   if (status) url.searchParams.set('status', status);
   url.searchParams.set('limit', String(limit));
-  const response = await fetch(url.toString());
+  const response = await fetch(url.toString(), { signal });
   const data = await handleResponse<{ approvals: ApprovalRequest[] }>(response);
   return data.approvals;
 };

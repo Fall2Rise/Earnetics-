@@ -1,0 +1,18 @@
+{
+  "collected_at": "2026-01-13T09:58:40.346770+00:00",
+  "period_hours": 24,
+  "leads_created_24h": 0,
+  "replies_24h": 0,
+  "calls_booked_24h": 0,
+  "closes_24h": 0,
+  "cash_collected_24h": 0.0,
+  "top_objections": [],
+  "top_hooks": [],
+  "pipeline_by_stage": {
+    "leads": 0,
+    "replies": 0,
+    "calls": 0,
+    "closes": 0
+  },
+  "last_24h_failures": []
+}

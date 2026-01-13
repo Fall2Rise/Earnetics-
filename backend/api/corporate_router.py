@@ -212,27 +212,6 @@ def _sync_product_to_stripe(request: ProductRequest) -> Optional[Dict[str, Any]]
         return None
 
 
-@router.get("/system_status")
-def system_status_endpoint():
-    try:
-        status = agents.system_status()
-        log_event(
-            "system.status",
-            status="success",
-            agent="corporate_router",
-            message="System status retrieved",
-        )
-        return status
-    except Exception as exc:  # pragma: no cover - defensive path
-        log_event(
-            "system.status",
-            status="error",
-            agent="corporate_router",
-            message=str(exc),
-        )
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
-
-
 @router.get("/financial_summary")
 async def financial_summary_endpoint():
     try:

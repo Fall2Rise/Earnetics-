@@ -1,0 +1,15 @@
+{
+  "template_id": "CALL_OPENER",
+  "version": "1.0.0",
+  "script_type": "call_opener",
+  "template": "Hey [Name], this is [Your Name]. I saw you're [context] and wanted to see if you need help [value_proposition]. I do [offer_name] - [key_benefits]. Do you have [time] to see if this makes sense?",
+  "variables": {
+    "context": "what they're doing",
+    "value_proposition": "what you help with",
+    "offer_name": "name of offer",
+    "key_benefits": "top 2-3 benefits",
+    "time": "3 minutes"
+  },
+  "example": "Hey [Name], this is [Your Name]. I saw you're launching a course and wanted to see if you need help getting launch-ready fast. I do done-for-you launch kits in 48 hours - landing page, emails, traffic plan, the works. Do you have 3 minutes to see if this makes sense?"
+}
+

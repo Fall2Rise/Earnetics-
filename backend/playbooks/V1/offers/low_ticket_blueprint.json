@@ -1,0 +1,18 @@
+{
+  "template_id": "LOW_TICKET_BLUEPRINT",
+  "version": "1.0.0",
+  "offer_name": "Growth Playbook",
+  "deliverables": [
+    "Step-by-step marketing and revenue blueprint",
+    "Traffic strategies",
+    "Conversion optimization guide",
+    "Scaling tactics"
+  ],
+  "price_points": [
+    {"amount": 97, "label": "Pay in Full", "deposit": false}
+  ],
+  "guarantee": "30-day money-back guarantee",
+  "fulfillment_time": "Instant digital delivery",
+  "target_buyer": "Business owner wanting a quick-start revenue guide"
+}
+

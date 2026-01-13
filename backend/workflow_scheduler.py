@@ -206,6 +206,7 @@ class OrchestrationScheduler:
             if self.approval_queue is None:
                 return {"job_id": job.id, "status": "error", "message": "Approval queue not configured"}
             self._set_status(job.id, "awaiting_approval")
+            # Create approval request with enhanced context (description, context, impact)
             self.approval_queue.create_request(job.id, job.handler, job.payload)
             log_event("scheduler.awaiting_approval", job_id=job.id, handler=job.handler)
             return {"job_id": job.id, "status": "awaiting_approval"}
