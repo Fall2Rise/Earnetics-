@@ -23,6 +23,5 @@ if ($nodeProcs) {
 
 Write-Host "`n✅ Cleanup complete!`n" -ForegroundColor Green
 Write-Host "Now you can start fresh:" -ForegroundColor Cyan
-Write-Host "  1. .\start_backend.ps1 (wait for 'Application startup complete')" -ForegroundColor White
-Write-Host "  2. .\start_frontend.ps1 (in a NEW window)`n" -ForegroundColor White
+Write-Host "  1. .\scripts\run_all.ps1`n" -ForegroundColor White
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import logging
@@ -278,7 +278,10 @@ def process_new_dfy_leads() -> List[DFYLead]:
         logger.info("DFY Income Engine: no leads in store yet.")
         return processed
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
+    
+    leads_checked = 0
+    leads_matched = 0
 
     for lead_id, lead in list(dfy_leads_store.items()):
         try:
@@ -287,8 +290,10 @@ def process_new_dfy_leads() -> List[DFYLead]:
             status = ""
 
         # Only touch leads that are fresh / flagged for processing
+        leads_checked += 1
         if status not in ("", "new", "pending", "submitted", "draft", "created"):
             continue
+        leads_matched += 1
 
         try:
             playbook = _select_playbook_for_lead(lead)
@@ -323,6 +328,7 @@ def process_new_dfy_leads() -> List[DFYLead]:
                     lead_id,
                 )
 
+    logger.info(f"DFY Engine: Checked {leads_checked} leads, matched {leads_matched} for processing.")
     return processed
 
 

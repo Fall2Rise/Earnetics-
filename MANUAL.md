@@ -74,7 +74,7 @@ npm run dev
 
 ### Quick Start Script
 ```powershell
-.\START_TONIGHT.ps1
+.\scripts\run_all.ps1
 ```
 
 ---

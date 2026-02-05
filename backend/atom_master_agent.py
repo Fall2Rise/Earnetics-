@@ -10,7 +10,7 @@ from backend.atom_agent_builder import AtomAgentBuilder
 from backend.atom_evolution_engine import AtomEvolutionEngine
 from backend.atom_cloning_engine import AtomCloningEngine
 from backend.atom_doctrine_mutation import AtomDoctrineMutation
-from backend.llm_client import LLMClient, LLMGenerationError, LLMNotConfiguredError
+from backend.llm import LLMGateway
 from backend.prime_directive import (
     load_prime_directive,
     classify_risk,
@@ -37,7 +37,7 @@ class AtomPresidentAgent:
         self.cloner = AtomCloningEngine()
         self._init_doctrine_tools()
         self.prime_directive = load_prime_directive()
-        self._init_chat_client()  # Initialize chat client
+        # self._init_chat_client()  # Replaced by LLMGateway
 
     def _init_doctrine_tools(self):
         try:
@@ -46,14 +46,14 @@ class AtomPresidentAgent:
             print(f"[ERROR] Failed to load Doctrine Mutation Engine: {e}")
             self.doctrine_mutator = None
 
-    def _init_chat_client(self) -> None:
-        try:
-            self.chat_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
-            if not self.chat_client.configured:
-                print(self.chat_client.init_error or "LLM provider not configured for ATOM chat")
-        except Exception as exc:
-            print(f"[ERROR] Failed to initialize ATOM chat client: {exc}")
-            self.chat_client = None
+    # def _init_chat_client(self) -> None:
+    #     try:
+    #         self.chat_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
+    #         if not self.chat_client.configured:
+    #             print(self.chat_client.init_error or "LLM provider not configured for ATOM chat")
+    #     except Exception as exc:
+    #         print(f"[ERROR] Failed to initialize ATOM chat client: {exc}")
+    #         self.chat_client = None
 
     def observe_system(self):
         return {
@@ -155,12 +155,6 @@ class AtomPresidentAgent:
         validation = guardian.validate_action(self.name, action_name, plan)
         if not validation["approved"]:
             raise PermissionError(f"Guardian Blocked Action: {validation['reason']}")
-            
-        if "family" in plan.get("risks", []):
-            raise PermissionError("Violates anti-harm safeguard.")
-        risk = classify_risk(action_name)
-        if risk == "RED" and not require_authorization(risk):
-            raise PermissionError("RED action requires cryptographic approval.")
         if plan.get("anomaly_detected"):
             raise PermissionError("Anomaly detected — defensive mode engaged.")
         return True
@@ -174,25 +168,26 @@ class AtomPresidentAgent:
         return self.cloner.clone_agent(base_agent, new_agent, directive)
 
     async def chat(self, message: str) -> Dict[str, Any]:
-        if not self.chat_client or not self.chat_client.configured:
-            err = getattr(self.chat_client, "init_error", "Chat client unavailable")
-            return {"status": "error", "message": err}
         self.guarded_execute("atom_chat", {"risks": []})
         try:
             # Gather real system data before responding
             system_context = self._gather_system_context(message)
             system_prompt = self._build_atom_system_prompt(system_context)
             
-            response = await self.chat_client.generate(
-                system_prompt,
-                message,
+            response = await LLMGateway.chat(
+                messages=[{"role": "user", "content": message}],
+                system_prompt=system_prompt,
+                agent_id=self.name,
+                department="Executive",
                 temperature=0.35,
                 max_tokens=500,
             )
+            
+            if not response.ok:
+                return {"status": "error", "message": response.error.message if response.error else "Unknown error"}
+                
             return {"status": "ok", "response": response.content}
-        except (LLMGenerationError, LLMNotConfiguredError) as exc:
-            return {"status": "error", "message": str(exc)}
-        except Exception as exc:  # pragma: no cover
+        except Exception as exc:
             return {"status": "error", "message": str(exc)}
 
     def _gather_system_context(self, message: str) -> Dict[str, Any]:

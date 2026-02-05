@@ -1,0 +1,37 @@
+{
+  "system_name": "Fallat_CrewAI",
+  "purpose": "Sovereign, directive-bound command center",
+  "directive_source": "prime_directive.json",
+  "modules": [
+    { "id": "directive_core", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["non_negotiables", "auditability"] },
+    { "id": "agent_nexus", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["non_negotiables", "multi_agent_mesh"] },
+    { "id": "knowledge_vault", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["security_and_integrity", "auditability"] },
+    { "id": "content_registry", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["wealth_support_systems"] },
+    { "id": "credential_vault", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["security_and_integrity"] },
+    { "id": "tool_forge", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["operational_principles", "auditability"] },
+    { "id": "workflow_monitor", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["decision_framework", "auditability"] },
+    { "id": "mission_control", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["wealth_support_systems"] },
+    { "id": "audit_log", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["auditability"] },
+    { "id": "evolution_chamber", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["self_improvement"] },
+    { "id": "simulation_engine", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["decision_framework"] },
+    { "id": "reason_explain_engine", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["auditability", "decision_framework"] },
+    { "id": "chain_of_intent_tracer", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["auditability"] },
+    { "id": "forecast_engine", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["wealth_support_systems", "temporal_intelligence"] },
+    { "id": "observer_protocol", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["security_and_integrity"] },
+    { "id": "dead_agent_protocol", "enabled": true, "risk_tier": "RED", "directive_refs": ["succession_and_continuity"] },
+    { "id": "quantum_succession", "enabled": true, "risk_tier": "RED", "directive_refs": ["dynastic_succession_matrix"] },
+    { "id": "reusable_playbook_library", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["self_improvement", "auditability"] },
+    { "id": "resource_monitor", "enabled": true, "risk_tier": "GREEN", "directive_refs": ["security_and_integrity"] },
+
+    { "id": "web3_department", "enabled": false, "risk_tier": "RED", "directive_refs": ["security_and_integrity"], "notes": "Requires explicit owner approval and legal review." },
+    { "id": "legal_compliance_monitor", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["respect_lawful_boundaries", "auditability"] },
+
+    { "id": "synthetic_identity_swarm", "enabled": false, "risk_tier": "RED", "directive_refs": ["avoid_deception_or_manipulation"], "notes": "Disabled pending policy/legal review." },
+    { "id": "narrative_influence_engine", "enabled": false, "risk_tier": "RED", "directive_refs": ["avoid_deception_or_manipulation"], "notes": "Disabled pending policy/legal review." },
+    { "id": "global_intelligence_grid", "enabled": false, "risk_tier": "RED", "directive_refs": ["respect_lawful_boundaries"], "notes": "Disabled pending policy/legal review." },
+    { "id": "ai_legal_engine", "enabled": false, "risk_tier": "RED", "directive_refs": ["respect_lawful_boundaries"], "notes": "Disabled pending policy/legal review." },
+    { "id": "blackbox_shadow_log", "enabled": false, "risk_tier": "RED", "directive_refs": ["auditability"], "notes": "Disabled pending policy/legal review." },
+    { "id": "fallat_seal_layer", "enabled": false, "risk_tier": "RED", "directive_refs": ["proof_of_alignment_ledger"], "notes": "Disabled pending policy/legal review." },
+    { "id": "agent_dna_registry", "enabled": true, "risk_tier": "YELLOW", "directive_refs": ["multi_agent_mesh", "auditability"] }
+  ]
+}

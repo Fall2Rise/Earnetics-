@@ -76,19 +76,8 @@
 - Subscriber statistics: Total, active, by category, by source, by tag
 
 ## 🚀 To Start Everything
-
-### Option 1: Start Both (Recommended)
 ```powershell
-.\START_BOTH.ps1
-```
-
-### Option 2: Start Separately
-```powershell
-# Terminal 1 - Backend
-.\start_backend.ps1
-
-# Terminal 2 - Frontend
-.\start_frontend.ps1
+.\scripts\run_all.ps1
 ```
 
 ### Access

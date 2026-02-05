@@ -1831,7 +1831,7 @@ async def list_products_detailed():
             cursor.execute("""
                 SELECT id, name, description, price, category, type, interval, 
                        active, development_status, launch_date, revenue_generated,
-                       created_at, updated_at
+                       created_at, updated_at, payment_link, landing_page
                 FROM products
                 WHERE active = 1
                 ORDER BY created_at DESC
@@ -1850,7 +1850,9 @@ async def list_products_detailed():
                     "launch_date": row["launch_date"],
                     "revenue_generated": row["revenue_generated"] or 0,
                     "created_at": row["created_at"],
-                    "updated_at": row["updated_at"]
+                    "updated_at": row["updated_at"],
+                    "payment_link": row["payment_link"],
+                    "landing_page": row["landing_page"]
                 })
         return {"products": products, "total": len(products)}
     except Exception as e:

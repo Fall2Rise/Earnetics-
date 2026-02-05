@@ -5,7 +5,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.main import RevenueFlowRunner
+from backend.legacy_python_runner.main import RevenueFlowRunner
 
 router = APIRouter(prefix="/api/revenue-loop", tags=["revenue-loop"])
 _runner = RevenueFlowRunner()

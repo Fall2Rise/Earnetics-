@@ -279,10 +279,42 @@ class AutomationWorker:
         except (TypeError, ValueError):
             limit = 10
 
+        # Route through ToolExecutor (NO direct Stripe calls)
+        executor = None
         try:
-            payments = await stripe.get_recent_payments(limit=limit)
+            from backend.main_server import app
+            executor = getattr(app.state, "tool_executor", None)
+        except Exception:
+            pass
+        
+        if executor is None:
+            logger.warning("ToolExecutor not available, falling back to default handler")
+            return await self._default_handler(context)
+
+        # Execute via ToolExecutor
+        try:
+            tool_result = executor.execute(
+                tool_name="stripe.get_recent_payments",
+                args={"limit": limit},
+                actor="AutomationWorker",
+                autonomous=True,
+                meta={"department": context.task.get("department"), "task_id": context.task.get("id")},
+            )
+            
+            if tool_result.get("status") != "executed":
+                error_msg = tool_result.get("reason") or tool_result.get("error", "Tool execution failed")
+                return TaskExecutionResult(
+                    success=False,
+                    message=f"Stripe payments fetch blocked/failed: {error_msg}",
+                    output=tool_result,
+                    retry_delay_minutes=self.retry_backoff_minutes,
+                )
+            
+            payments_data = tool_result.get("result", {})
+            payments = payments_data.get("payments", [])
+            
         except Exception as exc:  # pragma: no cover - defensive
-            logger.exception("Stripe payments fetch failed: %s", exc)
+            logger.exception("ToolExecutor Stripe payments fetch failed: %s", exc)
             return TaskExecutionResult(
                 success=False,
                 message=f"Stripe payments fetch failed: {exc}",
@@ -310,10 +342,35 @@ class AutomationWorker:
                 price = float(price_raw)
             except (TypeError, ValueError):
                 price = 97.0
+            # Route through ToolExecutor (NO direct Stripe calls)
             try:
-                product_result = await stripe.create_product(product_name, description, price)
+                tool_result = executor.execute(
+                    tool_name="stripe.create_product",
+                    args={
+                        "name": product_name,
+                        "description": description,
+                        "price": price,
+                        "currency": metadata.get("currency", "usd"),
+                    },
+                    actor="AutomationWorker",
+                    autonomous=True,
+                    meta={"department": context.task.get("department"), "task_id": context.task.get("id")},
+                )
+                
+                if tool_result.get("status") != "executed":
+                    error_msg = tool_result.get("reason") or tool_result.get("error", "Tool execution failed")
+                    output["product_setup"] = {"error": error_msg, "tool_result": tool_result}
+                    return TaskExecutionResult(
+                        success=False,
+                        message=f"Stripe product creation blocked/failed: {error_msg}",
+                        output=output,
+                        retry_delay_minutes=self.retry_backoff_minutes,
+                    )
+                
+                product_result = tool_result.get("result", {})
+                
             except Exception as exc:  # pragma: no cover - defensive
-                logger.exception("Stripe product creation failed: %s", exc)
+                logger.exception("ToolExecutor Stripe product creation failed: %s", exc)
                 output["product_setup"] = {"error": str(exc)}
                 return TaskExecutionResult(
                     success=False,
@@ -451,21 +508,91 @@ class AutomationWorker:
             )
             return
 
-        context = TaskExecutionContext(
-            task=task,
-            queue_item=queue_item,
-            started_at=datetime.utcnow(),
-        )
-        handler = self._select_handler(task)
-        try:
-            result = await self._call_handler(handler, context)
-        except Exception as exc:  # pragma: no cover - robust handler boundary
-            logger.exception("Automation handler crashed for task %s: %s", task_id, exc)
-            result = TaskExecutionResult(
-                success=False,
-                message=str(exc),
-                output={"error": str(exc)},
+        # Check if this is a tool-based execution (new format)
+        tool_name = task.get("tool") or queue_item.get("tool")
+        if tool_name:
+            # Route through ToolExecutor
+            try:
+                # Get ToolExecutor from app state (injected or from global)
+                executor = getattr(self, "_tool_executor", None)
+                if executor is None:
+                    # Try to get from app state if we have access
+                    try:
+                        from backend.main_server import app
+                        executor = getattr(app.state, "tool_executor", None)
+                    except Exception:
+                        pass
+                
+                if executor is None:
+                    raise RuntimeError("ToolExecutor not wired on app.state")
+                
+                args = task.get("args") or task.get("payload") or {}
+                meta = task.get("meta") or {}
+                meta.update({
+                    "department": task.get("department"),
+                    "job_id": str(queue_item.get("id")),
+                    "task_id": task_id,
+                })
+                
+                # Execute via ToolExecutor (autonomous=True for automation worker)
+                tool_result = executor.execute(
+                    tool_name=tool_name,
+                    args=args,
+                    actor="AutomationWorker",
+                    autonomous=True,
+                    meta=meta,
+                )
+                
+                # Convert ToolExecutor result to TaskExecutionResult
+                if tool_result.get("status") == "executed":
+                    result = TaskExecutionResult(
+                        success=True,
+                        message=f"Tool {tool_name} executed successfully",
+                        output=tool_result.get("result", {}),
+                    )
+                elif tool_result.get("status") == "needs_approval":
+                    result = TaskExecutionResult(
+                        success=False,
+                        message=f"Tool {tool_name} requires approval (request_id: {tool_result.get('request_id')})",
+                        output=tool_result,
+                        retry_delay_minutes=60,  # Wait for approval
+                    )
+                elif tool_result.get("status") == "blocked":
+                    result = TaskExecutionResult(
+                        success=False,
+                        message=f"Tool {tool_name} blocked: {tool_result.get('reason')}",
+                        output=tool_result,
+                    )
+                else:
+                    result = TaskExecutionResult(
+                        success=False,
+                        message=f"Tool {tool_name} failed: {tool_result.get('error', 'Unknown error')}",
+                        output=tool_result,
+                    )
+            except Exception as exc:
+                logger.exception("ToolExecutor execution failed for task %s: %s", task_id, exc)
+                result = TaskExecutionResult(
+                    success=False,
+                    message=f"ToolExecutor error: {exc}",
+                    output={"error": str(exc)},
+                )
+        else:
+            # Legacy handler-based execution
+            context = TaskExecutionContext(
+                task=task,
+                queue_item=queue_item,
+                started_at=datetime.utcnow(),
             )
+            handler = self._select_handler(task)
+            try:
+                result = await self._call_handler(handler, context)
+            except Exception as exc:  # pragma: no cover - robust handler boundary
+                logger.exception("Automation handler crashed for task %s: %s", task_id, exc)
+                result = TaskExecutionResult(
+                    success=False,
+                    message=str(exc),
+                    output={"error": str(exc)},
+                )
 
         duration_ms = int((datetime.utcnow() - context.started_at).total_seconds() * 1000)
         log_entry = {

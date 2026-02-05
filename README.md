@@ -33,15 +33,15 @@ pip install -r requirements.txt
 python scripts/validate_secrets.py
 ```
 
-### 4. Run Locally
-```bash
-FALLAT_API_TOKEN=change-me uvicorn backend.main_server:app --host 0.0.0.0 --port 8000 --reload
+### 4. Run Locally (single entrypoint)
+```powershell
+cd C:\AI_Projects\Fallat_CrewAI
+.\scripts\run_all.ps1
 ```
 
-- Command Center Dashboard: <http://localhost:8000>
-- API Docs / OpenAPI: <http://localhost:8000/docs>
-- System snapshot: `GET /api/system/status`
-- Corporate console (plugins, permissions, scheduler) is served from `/`
+- Command Center Dashboard: <http://localhost:5173>
+- Backend API: <http://127.0.0.1:8000>
+- API Docs / OpenAPI: <http://127.0.0.1:8000/docs>
 
 ## 🐳 Docker Deployment
 ```bash

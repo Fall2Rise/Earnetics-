@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { MessageSquare, User } from 'lucide-react';
 import { NextStepAdvisor } from '../dashboard/NextStepAdvisor';
 import { fetchSystemStatus, SystemStatusResponse } from '../../api/systemStatusApi';
 import { getMetrics, MetricsResult } from '../../api/metricsApi';
@@ -134,6 +135,7 @@ const NAV_GROUPS: NavGroup[] = [
       { key: 'knowledge-vault', label: 'Knowledge Vault' },
       { key: 'chain-intent', label: 'Chain of Intent' },
       { key: 'reason-explain', label: 'Reasoning' },
+      { key: 'simulation-engine', label: 'Simulator' },
     ]
   },
   {
@@ -161,6 +163,7 @@ const NAV_GROUPS: NavGroup[] = [
     category: 'Financial',
     items: [
       { key: 'financial', label: 'Finance' },
+      { key: 'forecast-engine', label: 'Forecasts' },
       { key: 'marketing', label: 'Marketing' },
       { key: 'subscribers', label: 'Subscribers' },
       { key: 'web3-department', label: 'Web3' },
@@ -739,7 +742,7 @@ export const CommandCenter: React.FC = () => {
         <div className="command-center__nav" style={{ flexShrink: 0, padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           
           {/* Top Level Categories */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex flex-wrap gap-2 pb-2">
              {NAV_GROUPS.map(group => {
                  const isActiveGroup = group.items.some(item => item.key === activeSection);
                  return (
@@ -777,6 +780,14 @@ export const CommandCenter: React.FC = () => {
                 <span className="text-slate-600">/</span>
                 <span className="text-cyan-400 font-bold tracking-wide">{section.label}</span>
             </div>
+
+            <button 
+              className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-lg border border-cyan-500/30 transition-all hover:shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+              onClick={() => alert("ATOM Interface: Voice/Text Link Establishing... (Feature coming in next update)")}
+            >
+              <User size={14} />
+              <span className="text-xs font-bold tracking-wide">TALK TO ATOM</span>
+            </button>
         </div>
 
         <div className="command-center__content" style={{ flex: 1, overflowY: 'auto', paddingBottom: '4rem', paddingRight: '1rem' }}>

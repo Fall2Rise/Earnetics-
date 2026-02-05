@@ -17,6 +17,7 @@ HOW TO VIEW LATEST:
     - File: backend/reports/strategy/latest_strategy.json
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -26,7 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from backend.llm_client import LLMClient, LLMNotConfiguredError
+from backend.llm import LLMGateway
 from backend.telemetry.signal_collector import SignalCollector
 from backend.telemetry.bottleneck_detector import BottleneckDetector
 from backend.playbooks.renderer import PlaybookRenderer
@@ -42,32 +43,34 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 REPORTS_DIR = PROJECT_ROOT / "backend" / "reports" / "strategy"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
+MAX_ACTIVE_EXPERIMENTS = int(os.getenv("MAX_ACTIVE_EXPERIMENTS", "3"))
+
 
 class StrategyRunner:
     """Runs strategy generation cycles."""
 
     def __init__(self):
         self.store = StrategyStore()
-        self.llm_client = None
+        # self.llm_client = None
         self.signal_collector = SignalCollector()
         self.bottleneck_detector = BottleneckDetector()
         self.playbook_renderer = PlaybookRenderer()
         self.experiment_registry = ExperimentRegistry()
         self.artifact_factory = ArtifactFactory()
-        self._init_llm()
+        # self._init_llm()
 
-    def _init_llm(self) -> None:
-        """Initialize LLM client."""
-        try:
-            self.llm_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
-            if not self.llm_client.configured:
-                logger.warning(
-                    "LLM client not configured: %s", self.llm_client.init_error
-                )
-                self.llm_client = None
-        except LLMNotConfiguredError as e:
-            logger.warning("LLM client not configured: %s", e)
-            self.llm_client = None
+    # def _init_llm(self) -> None:
+    #     """Initialize LLM client."""
+    #     try:
+    #         self.llm_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
+    #         if not self.llm_client.configured:
+    #             logger.warning(
+    #                 "LLM client not configured: %s", self.llm_client.init_error
+    #             )
+    #             self.llm_client = None
+    #     except LLMNotConfiguredError as e:
+    #         logger.warning("LLM client not configured: %s", e)
+    #         self.llm_client = None
 
     def _load_prompt(self, prompt_name: str) -> str:
         """Load prompt from prompts directory."""
@@ -83,7 +86,10 @@ class StrategyRunner:
         goal_cash_target = 150000.0
         
         try:
+            # Ensure deadline is offset-aware (UTC)
             deadline = datetime.fromisoformat(goal_deadline.replace("Z", "+00:00"))
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=timezone.utc)
         except ValueError:
             deadline = datetime(2026, 1, 31, tzinfo=timezone.utc)
         
@@ -180,18 +186,18 @@ When generating plays, reference template IDs when applicable (e.g., "template_i
 
     def _call_llm(self, prompt: str) -> str:
         """Call LLM with prompt."""
-        if not self.llm_client:
-            raise RuntimeError("LLM client not configured")
-        
         try:
-            response = self.llm_client.chat(
+            response = asyncio.run(LLMGateway.chat(
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-            )
+                department="Strategy Cell"
+            ))
             
-            if isinstance(response, dict):
-                return response.get("content", "") or response.get("message", "") or str(response)
-            return str(response)
+            if not response.ok:
+                logger.error(f"LLM call failed: {response.error}")
+                raise RuntimeError(f"LLM call failed: {response.error.message}")
+                
+            return response.content or ""
         except Exception as e:
             logger.error("LLM call failed: %s", e)
             raise
@@ -228,8 +234,6 @@ When generating plays, reference template IDs when applicable (e.g., "template_i
 
     def _repair_json(self, invalid_json: str) -> Optional[Dict[str, Any]]:
         """Attempt to repair invalid JSON using LLM."""
-        if not self.llm_client:
-            return None
         
         repair_prompt = f"""Fix this JSON. Return ONLY valid JSON, no explanations, no markdown:
 

@@ -492,8 +492,75 @@ export const OperationsPulse: React.FC<OperationsPulseProps> = ({
   );
 };
 
+const formatPayload = (payload: unknown): React.ReactNode => {
+  if (!payload) return <span className="text-slate-500 italic">No details available</span>;
+
+  let data = payload;
+  
+  // Handle double-encoded JSON strings (common issue)
+  if (typeof payload === 'string') {
+    try {
+      data = JSON.parse(payload);
+    } catch {
+      // Keep as string if parse fails
+    }
+  }
+
+  // If it's an object, try to clean up nested stringified fields
+  if (typeof data === 'object' && data !== null) {
+    const cleanData: Record<string, unknown> = {};
+    Object.entries(data as Record<string, unknown>).forEach(([key, value]) => {
+      if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
+        try {
+          cleanData[key] = JSON.parse(value);
+        } catch {
+          cleanData[key] = value;
+        }
+      } else {
+        cleanData[key] = value;
+      }
+    });
+    data = cleanData;
+  }
+
+  // Render human-readable view
+  if (typeof data === 'object' && data !== null) {
+    return (
+      <div className="space-y-2">
+        {Object.entries(data as Record<string, unknown>).map(([key, value]) => {
+          // Skip internal/technical keys if needed, or format them nicely
+          const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          
+          let displayValue: React.ReactNode = String(value);
+          
+          if (typeof value === 'object' && value !== null) {
+             displayValue = (
+               <pre className="text-[10px] text-cyan-200/70 mt-1 bg-black/20 p-1 rounded overflow-x-auto">
+                 {JSON.stringify(value, null, 2)}
+               </pre>
+             );
+          } else if (typeof value === 'string' && value.length > 100) {
+             displayValue = <div className="text-slate-300 text-xs whitespace-pre-wrap">{value}</div>;
+          } else {
+             displayValue = <span className="text-slate-200 font-medium">{String(value)}</span>;
+          }
+
+          return (
+            <div key={key} className="bg-white/5 p-2 rounded border border-white/5">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">{label}</div>
+              {displayValue}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return <div className="text-slate-300">{String(data)}</div>;
+};
+
 const renderObjectDetails = (value: unknown) => (
-  <pre className="text-xs bg-black/40 border border-cyan-500/20 rounded-lg p-4 overflow-x-auto text-cyan-100">
-    {JSON.stringify(value ?? {}, null, 2)}
-  </pre>
+  <div className="text-xs bg-black/40 border border-cyan-500/20 rounded-lg p-4 overflow-x-auto text-cyan-100 max-h-60 custom-scrollbar">
+    {formatPayload(value)}
+  </div>
 );

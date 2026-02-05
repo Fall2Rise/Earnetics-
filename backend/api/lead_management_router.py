@@ -79,6 +79,16 @@ def qualify_lead(lead_id: int, qualified: bool = True) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/scraped/{lead_id}/add-to-list")
+def add_lead_to_list(lead_id: int) -> Dict:
+    """Add a scraped lead to the email subscriber list"""
+    try:
+        lead_service = LeadGenerationService()
+        result = lead_service.add_leads_to_email_list(lead_ids=[lead_id])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/marketing/recipients")
 def get_marketing_recipients(
     limit: int = Query(100, ge=1, le=1000),

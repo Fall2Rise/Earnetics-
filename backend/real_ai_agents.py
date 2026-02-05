@@ -21,15 +21,11 @@ import os
 import random
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
-from backend.llm_client import (
-    LLMGenerationError,
-    LLMNotConfiguredError,
-    get_llm_client,
-)
+from backend.llm import LLMGateway
 
 from backend.api_integrations import APIIntegrationManager
 from backend.corporate_memory import CorporateMemory, KnowledgeArticle, Task, BUSINESS_DB_PATH, BUSINESS_DB_PATH
@@ -287,9 +283,9 @@ class RealAIAgent:
         # Seed initial memory entry
         self._seed_initial_memory()
 
-        # Unified LLM client (local Ollama by default)
-        self.llm_client = None
-        self._setup_ai_clients()
+        # Unified LLM client (Replaced by LLMGateway)
+        # self.llm_client = None
+        # self._setup_ai_clients()
 
     def _create_custom_prompt(self) -> str:
         """Create a custom prompt based on agent's role, personality, and specialties"""
@@ -334,19 +330,19 @@ Always focus on actionable outcomes and measurable results."""
         except Exception as exc:
             logger.debug(f"Failed to seed initial memory for {self.name}: {exc}")
 
-    def _setup_ai_clients(self):
-        """Setup AI API clients if keys are available"""
-        try:
-            self.llm_client = get_llm_client()
-            if self.llm_client:
-                logger.info(
-                    "LLM provider '%s' ready for %s",
-                    self.llm_client.provider,
-                    self.name,
-                )
-        except LLMNotConfiguredError as exc:
-            logger.warning(f"LLM client not configured for {self.name}: {exc}")
-            self.llm_client = None
+    # def _setup_ai_clients(self):
+    #     """Setup AI API clients if keys are available"""
+    #     try:
+    #         self.llm_client = get_llm_client()
+    #         if self.llm_client:
+    #             logger.info(
+    #                 "LLM provider '%s' ready for %s",
+    #                 self.llm_client.provider,
+    #                 self.name,
+    #             )
+    #     except LLMNotConfiguredError as exc:
+    #         logger.warning(f"LLM client not configured for {self.name}: {exc}")
+    #         self.llm_client = None
 
 
     def _store_knowledge(self, title: str, content: str, tags: Optional[str] = None) -> None:
@@ -698,17 +694,21 @@ Focus on actions that can generate revenue immediately.
     ) -> Optional[str]:
         """Get actual AI response from available APIs"""
 
-        if not self.llm_client:
-            return None
-
         try:
-            response = await self.llm_client.generate(
-                system_prompt,
-                user_prompt,
+            response = await LLMGateway.generate(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                agent_id=self.name,
+                department=self.division,
                 max_tokens=1000,
             )
+            
+            if not response.ok:
+                logger.error(f"LLM generation failed for {self.name}: {response.error}")
+                return None
+                
             return response.content
-        except (LLMGenerationError, LLMNotConfiguredError) as exc:
+        except Exception as exc:
             logger.error(f"LLM generation failed for {self.name}: {exc}")
             return None
 
@@ -738,11 +738,80 @@ Focus on actions that can generate revenue immediately.
         }
 
     async def _execute_actions(self, decision: Dict) -> Dict[str, Any]:
-        """Execute actions based on decision (to be implemented by subclasses)"""
-        # Default implementation returns success
+        """Execute actions based on decision. Routes tool actions through ToolExecutor."""
+        # Check if decision contains tool actions
+        actions = decision.get("actions", [])
+        if not isinstance(actions, list):
+            actions = [decision] if decision else []
+        
+        results = []
+        
+        # Try to get ToolExecutor from app state
+        executor = None
+        try:
+            from backend.main_server import app
+            executor = getattr(app.state, "tool_executor", None)
+        except Exception:
+            pass
+        
+        for action in actions:
+            # Check if this is a tool action
+            if isinstance(action, dict) and action.get("type") == "tool":
+                tool_name = action.get("tool")
+                args = action.get("args") or {}
+                meta = action.get("meta") or {}
+                
+                if executor:
+                    try:
+                        tool_result = executor.execute(
+                            tool_name=tool_name,
+                            args=args,
+                            actor=self.name,
+                            autonomous=True,
+                            meta={"agent": self.name, **meta},
+                        )
+                        results.append({
+                            "action": action,
+                            "result": tool_result,
+                            "success": tool_result.get("status") == "executed",
+                        })
+                    except Exception as e:
+                        logger.exception(f"{self.name} tool execution failed: {e}")
+                        results.append({
+                            "action": action,
+                            "result": {"status": "error", "error": str(e)},
+                            "success": False,
+                        })
+                else:
+                    logger.warning(f"{self.name}: ToolExecutor not available, skipping tool {tool_name}")
+                    results.append({
+                        "action": action,
+                        "result": {"status": "error", "error": "ToolExecutor not available"},
+                        "success": False,
+                    })
+            else:
+                # Non-tool internal actions (handled by subclass implementations)
+                # Default: return success for internal actions
+                results.append({
+                    "action": action,
+                    "result": {"status": "internal", "success": True},
+                    "success": True,
+                })
+        
+        # If no actions specified, use default behavior
+        if not results:
+            return {
+                "success": True,
+                "action": "executed",
+                "agent": self.name,
+                "timestamp": datetime.now().isoformat(),
+            }
+        
+        # Return aggregated results
+        all_success = all(r.get("success", False) for r in results)
         return {
-            "success": True,
-            "action": "executed",
+            "success": all_success,
+            "actions": results,
             "agent": self.name,
             "timestamp": datetime.now().isoformat(),
         }
@@ -2678,9 +2747,41 @@ class WebScraper(RealAIAgent):
                 target_websites = lead_service.get_target_websites(enabled_only=True)
             
             # Scrape each target website (increased for higher volume)
+            # Route through ToolExecutor (NO direct scraping calls)
+            executor = None
+            try:
+                from backend.main_server import app
+                executor = getattr(app.state, "tool_executor", None)
+            except Exception:
+                pass
+            
+            if executor is None:
+                logger.warning(f"[WEB_SCRAPER] ToolExecutor not available, skipping scraping")
+                result["error"] = "ToolExecutor not available"
+                return result
+            
             for target in target_websites[:15]:  # Increased from 5 to 15 websites per cycle
                 try:
-                    scrape_result = lead_service.scrape_website(target["domain"], max_pages=15)  # Increased from 5 to 15 pages
+                    # Execute via ToolExecutor
+                    tool_result = executor.execute(
+                        tool_name="scrape.website",
+                        args={
+                            "domain": target["domain"],
+                            "max_pages": 15,
+                            "timeout": 15,
+                            "max_chars": 200000,
+                        },
+                        actor=self.name,
+                        autonomous=True,
+                        meta={"agent": self.name, "purpose": "lead_generation"},
+                    )
+                    
+                    if tool_result.get("status") != "executed":
+                        error_msg = tool_result.get("reason") or tool_result.get("error", "Scraping blocked/failed")
+                        logger.warning(f"[WEB_SCRAPER] Scraping {target['domain']} blocked/failed: {error_msg}")
+                        continue
+                    
+                    scrape_result = tool_result.get("result", {})
                     if scrape_result.get("leads_saved", 0) > 0:
                         result["leads_found"] += scrape_result.get("leads_saved", 0)
                         result["websites_scraped"].append({
@@ -3166,6 +3267,24 @@ class TrafficAnalyst(RealAIAgent):
         
         return result
 
+
+class ListBuilder(RealAIAgent):
+    """List Builder - Email List Growth Specialist - Builds and grows the email subscriber list"""
+
+    def __init__(self):
+        super().__init__(
+            name="ListBuilder",
+            role="Email List Growth Specialist",
+            division="Lead Generation & Acquisition",
+            personality="Growth-focused strategist building engaged subscriber lists",
+            specialties=[
+                "Email List Building",
+                "Subscriber Acquisition",
+                "List Growth Strategy",
+                "Lead Nurturing",
+            ],
+        )
+
     async def _execute_actions(self, decision: Dict):
         """Execute list building actions"""
         from backend.services.lead_generation_service import LeadGenerationService
@@ -3224,6 +3343,59 @@ class TrafficAnalyst(RealAIAgent):
         return result
 
 
+class CommunityManager(RealAIAgent):
+    """Community Manager - Website Growth & Digital Presence - Manages community engagement and growth"""
+
+    def __init__(self):
+        super().__init__(
+            name="CommunityManager",
+            role="Community Engagement Manager",
+            division="Website Growth & Digital Presence",
+            personality="Engaging community builder fostering relationships and driving engagement",
+            specialties=[
+                "Community Building",
+                "Engagement Strategy",
+                "Social Media Management",
+                "User Retention",
+            ],
+        )
+
+    async def _execute_actions(self, decision: Dict):
+        """Execute community management actions"""
+        from backend.services.website_growth_service import WebsiteGrowthService
+        
+        result = {
+            "success": True,
+            "action": "community_management",
+            "agent": self.name,
+            "timestamp": datetime.now().isoformat(),
+            "communities_managed": 0,
+            "engagements": [],
+        }
+        
+        try:
+            website_service = WebsiteGrowthService()
+            websites = website_service.get_websites()
+            
+            for website in websites:
+                # Manage community engagement
+                # Post updates, respond to comments, foster discussions
+                result["communities_managed"] += 1
+                result["engagements"].append({
+                    "website": website["domain"],
+                    "action": "community_engagement",
+                    "status": "active"
+                })
+            
+            logger.info(f"[COMMUNITY_MANAGER] ✅ Managed {result['communities_managed']} communities")
+        except Exception as e:
+            logger.error(f"[COMMUNITY_MANAGER] Error: {e}", exc_info=True)
+            result["success"] = False
+            result["error"] = str(e)
+        
+        return result
+
+
 class RevenueOperator(RealAIAgent):
     """Revenue Operator - Revenue Operations Manager - Manages ongoing revenue streams"""
 
@@ -3253,199 +3425,6 @@ class RevenueOperator(RealAIAgent):
 # =============================================================================
 
 
-class AIRevenueAgentCorporation:
-    """Main orchestrator for all autonomous agents"""
-
-    def __init__(self):
-        # Initialize all agents
-        self.agents = {
-            # Executive Core
-            "akasha": Akasha(),
-            "atlas": Atlas(),
-            # Finance & Revenue
-            "vega": Vega(),
-            "omen": Omen(),
-            "nova": Nova(),
-            "mercury": Mercury(),
-            "stripeops": StripeOps(),
-            # Affiliate Expansion
-            "orion": Orion(),
-            "vortex": Vortex(),
-            "lumen": Lumen(),
-            # Dropshipping Operations
-            "cascade": Cascade(),
-            "torrent": Torrent(),
-            # Revenue Innovation / Corporate Analytics
-            "genesis": Genesis(),
-            "dataanalyst": DataAnalyst(),
-            "metricsreporter": MetricsReporter(),
-            # Operations Integrity
-            "keeper": Keeper(),
-            "sentinel": Sentinel(),
-            "pulse": Pulse(),
-            # Customer Operations
-            "relay": Relay(),
-            "harbor": Harbor(),
-            # Quality & Policy
-            "muse": Muse(),
-            "lex": Lex(),
-            # Creative & Product
-            "lyra": Lyra(),
-            "aurora": Aurora(),
-            "echo": Echo(),
-            "quill": Quill(),
-            # Tech & Infrastructure
-            "forge": Forge(),
-            "titan": Titan(),
-            "aegis": Aegis(),
-            "noir": Noir(),
-            # Legal & Sovereignty
-            "hermes": Hermes(),
-            "obsidian": Obsidian(),
-            # Health & Human Factor
-            "seraph": Seraph(),
-            "wellnesscoordinator": WellnessCoordinator(),
-            # Revenue Strategy Cell (Idea Department)
-            "strategydirector": StrategyDirector(),
-            "marketanalyst": MarketAnalyst(),
-            "opportunityscout": OpportunityScout(),
-            "playvalidator": PlayValidator(),
-            # Revenue Execution
-            "executioncommander": ExecutionCommander(),
-            "launchspecialist": LaunchSpecialist(),
-            "revenueoperator": RevenueOperator(),
-        }
-
-        logger.info(
-            f"AI Revenue Command Center initialized with {len(self.agents)} agents"
-        )
-
-    async def run_autonomous_cycle(
-        self, context: str = "Revenue generation cycle", data: Dict = None
-    ) -> Dict:
-        """Run full autonomous decision cycle across all agents"""
-
-        logger.info("Starting autonomous AI decision cycle")
-
-        results = {}
-
-        # 1. Executive planning (Akasha sets vision, Atlas coordinates)
-        exec_context = f"Executive planning for: {context}"
-
-
-    async def _execute_actions(self, decision: Dict):
-        """Execute security actions"""
-        logger.info(
-            f"[AEGIS] Securing systems: {decision.get('analysis', 'Security action')}"
-        )
-
-
-class Noir(RealAIAgent):
-    """Infiltrator - Scrapes data, recon, competitor analysis, market intelligence"""
-
-    def __init__(self):
-        super().__init__(
-            name="Noir",
-            role="Intelligence Infiltrator",
-            division="Tech & Infrastructure",
-            personality="Stealthy intelligence gatherer providing strategic market insights",
-            specialties=[
-                "Data Scraping",
-                "Competitor Analysis",
-                "Market Intelligence",
-                "Reconnaissance",
-            ],
-        )
-
-    async def _execute_actions(self, decision: Dict):
-        """Execute intelligence gathering actions"""
-        logger.info(
-            f"[NOIR] Gathering market intelligence: {decision.get('analysis', 'Intelligence action')}"
-        )
-
-
-# =============================================================================
-# 5. LEGAL & SOVEREIGNTY DIVISION
-# =============================================================================
-
-
-class Hermes(RealAIAgent):
-    """Legal Navigator - Chief Legal Counsel - Contracts, UCC filings, tax defense"""
-
-    def __init__(self):
-        super().__init__(
-            name="Hermes",
-            role="Chief Legal Counsel",
-            division="Legal & Sovereignty",
-            personality="Sharp legal mind protecting and advancing corporate interests",
-            specialties=[
-                "Contract Law",
-                "Corporate Structure",
-                "Tax Strategy",
-                "Legal Protection",
-            ],
-        )
-
-    async def _execute_actions(self, decision: Dict):
-        """Execute legal actions"""
-        logger.info(
-            f"[HERMES] Handling legal matters: {decision.get('analysis', 'Legal action')}"
-        )
-
-
-class Obsidian(RealAIAgent):
-    """Enforcer - Internal Security Chief - Monitors loyalty and data integrity"""
-
-    def __init__(self):
-        super().__init__(
-            name="Obsidian",
-            role="Internal Security Chief",
-            division="Legal & Sovereignty",
-            personality="Unwavering enforcer ensuring loyalty and protecting corporate secrets",
-            specialties=[
-                "Internal Security",
-                "Data Integrity",
-                "Loyalty Monitoring",
-                "Threat Prevention",
-            ],
-        )
-
-    async def _execute_actions(self, decision: Dict):
-        """Execute internal security actions"""
-        logger.info(
-            f"[OBSIDIAN] Enforcing security protocols: {decision.get('analysis', 'Security action')}"
-        )
-
-
-# =============================================================================
-# 6. HEALTH & HUMAN FACTOR DIVISION
-# =============================================================================
-
-
-class Seraph(RealAIAgent):
-    """Healing & Wellness AI - Chief Health Officer - Ensures human operator wellbeing"""
-
-    def __init__(self):
-        super().__init__(
-            name="Seraph",
-            role="Chief Health Officer",
-            division="Health & Human Factor",
-            personality="Caring wellness guardian ensuring sustainable high performance",
-            specialties=[
-                "Health Optimization",
-                "Wellness Strategy",
-                "Performance Enhancement",
-                "Medical Research",
-            ],
-        )
-
-    async def _execute_actions(self, decision: Dict):
-        """Execute health and wellness actions"""
-        logger.info(
-            f"[SERAPH] Optimizing human performance: {decision.get('analysis', 'Health action')}"
-        )
-
-
 # =============================================================================
 # AI REVENUE COMMAND CENTER AGENT ORCHESTRATOR
 # =============================================================================
@@ -3455,6 +3434,14 @@ class AIRevenueAgentCorporation:
     """Main orchestrator for all autonomous agents"""
 
     def __init__(self):
+        # Concurrency control - prevent agents from overwhelming the system
+        # Start with 5 concurrent agents max (can be adjusted via env var)
+        max_concurrent = int(os.getenv("MAX_CONCURRENT_AGENTS", "5"))
+        self._agent_sem = asyncio.Semaphore(max_concurrent)
+        
+        # Initialize website domains configuration
+        self._initialize_website_domains()
+        
         # Initialize all agents
         self.agents = {
             # Executive Core
@@ -3512,163 +3499,220 @@ class AIRevenueAgentCorporation:
             "executioncommander": ExecutionCommander(),
             "launchspecialist": LaunchSpecialist(),
             "revenueoperator": RevenueOperator(),
+            # Lead Generation & Acquisition
+            "webscraper": WebScraper(),
+            "leadqualifier": LeadQualifier(),
+            "listbuilder": ListBuilder(),
+            # Website Growth & Digital Presence
+            "websitemanager": WebsiteManager(),
+            "contentstrategist": ContentStrategist(),
+            "seospecialist": SEOSpecialist(),
+            "socialintegrator": SocialIntegrator(),
+            "affiliatemanager": AffiliateManager(),
+            "trafficanalyst": TrafficAnalyst(),
+            "communitymanager": CommunityManager(),
         }
 
         logger.info(
-            f"AI Revenue Command Center initialized with {len(self.agents)} agents"
+            f"AI Revenue Command Center initialized with {len(self.agents)} agents (max concurrent: {max_concurrent})"
         )
+
+    def _initialize_website_domains(self):
+        """Initialize the 4 website domains for agents to work with"""
+        try:
+            from backend.services.website_growth_service import WebsiteGrowthService
+            website_service = WebsiteGrowthService()
+            
+            # Define the 4 website domains
+            website_domains = [
+                {"domain": "earnetics.live", "name": "Earnetics", "type": "digital_products", "enabled": True},
+                {"domain": "fallat.digital", "name": "Fallat Digital", "type": "digital_products", "enabled": True},
+                {"domain": "fallat.homes", "name": "Fallat Homes", "type": "real_estate", "enabled": True},
+                {"domain": "homewardbound.live", "name": "Homeward Bound", "type": "real_estate", "enabled": True},
+            ]
+            
+            # Ensure each website exists in the system
+            for website_info in website_domains:
+                try:
+                    websites = website_service.get_websites()
+                    existing = next((w for w in websites if w.get("domain") == website_info["domain"]), None)
+                    
+                    if not existing:
+                        # Add website if it doesn't exist
+                        website_service.add_website(
+                            domain=website_info["domain"],
+                            name=website_info["name"],
+                            website_type=website_info["type"],
+                            enabled=website_info["enabled"]
+                        )
+                        logger.info(f"✅ Initialized website: {website_info['domain']}")
+                    else:
+                        logger.debug(f"Website {website_info['domain']} already exists")
+                except Exception as e:
+                    logger.warning(f"Could not initialize website {website_info['domain']}: {e}")
+        except Exception as e:
+            logger.warning(f"Website domain initialization skipped: {e}")
+
+    async def _safe_think_and_act(self, agent, context: str, data: Dict = None) -> Dict:
+        """Wrapper that applies concurrency control to agent execution"""
+        async with self._agent_sem:
+            try:
+                return await agent.think_and_act(context, data)
+            except Exception as e:
+                logger.error(f"Agent {agent.name} execution error: {e}")
+                return {
+                    "status": "error",
+                    "agent": agent.name,
+                    "error": str(e),
+                    "context": context
+                }
+
+    async def _run_agent_batch(self, agent_names: List[str], context: str, data: Dict = None) -> List[Dict]:
+        """Run a batch of agents concurrently with controlled concurrency"""
+        tasks = []
+        for name in agent_names:
+            agent = self.agents.get(name)
+            if not agent:
+                logger.warning(f"Agent {name} not found, skipping")
+                continue
+            # Use safe wrapper with semaphore
+            tasks.append(self._safe_think_and_act(agent, context, data))
+        
+        # Run concurrently but still awaited - deterministic and controlled
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Convert exceptions to error dicts
+        processed_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                agent_name = agent_names[i] if i < len(agent_names) else "unknown"
+                logger.error(f"Agent {agent_name} raised exception: {result}")
+                processed_results.append({
+                    "status": "error",
+                    "agent": agent_name,
+                    "error": str(result)
+                })
+            else:
+                processed_results.append(result)
+        
+        return processed_results
 
     async def run_autonomous_cycle(
         self, context: str = "Revenue generation cycle", data: Dict = None
     ) -> Dict:
         """Run full autonomous decision cycle across all agents - departments work in sync"""
-        import asyncio
-
         logger.info("🚀 Starting synchronized autonomous AI decision cycle - all departments working together")
 
         results = {}
 
         # 1. Executive planning (Akasha sets vision, Atlas coordinates) - Sequential for coordination
         exec_context = f"Executive planning for: {context}"
-        results["akasha"] = await self.agents["akasha"].think_and_act(
-            exec_context, data
-        )
-        results["atlas"] = await self.agents["atlas"].think_and_act(exec_context, data)
+        exec_results = await self._run_agent_batch(["akasha", "atlas"], exec_context, data)
+        results["akasha"] = exec_results[0] if len(exec_results) > 0 else {"status": "error", "error": "Akasha execution failed"}
+        results["atlas"] = exec_results[1] if len(exec_results) > 1 else {"status": "error", "error": "Atlas execution failed"}
 
-        # 2. All departments work in parallel - synchronized execution
+        # 2. All departments work in parallel - synchronized execution with controlled concurrency
         # Each department receives the executive context and works together
         
         # Revenue operations (Finance & Revenue department)
         revenue_context = f"Revenue optimization for: {context}"
         revenue_agents = ["omen", "nova", "mercury", "vega", "stripeops"]
-        revenue_tasks = [
-            self.agents[agent_name].think_and_act(revenue_context, data)
-            for agent_name in revenue_agents
-        ]
+        revenue_results = await self._run_agent_batch(revenue_agents, revenue_context, data)
+        for agent_name, result in zip(revenue_agents, revenue_results):
+            results[agent_name] = result
 
         # Affiliate expansion (Email Marketing department)
         affiliate_context = f"Affiliate expansion for: {context}"
         affiliate_agents = ["orion", "vortex", "lumen"]
-        affiliate_tasks = [
-            self.agents[agent_name].think_and_act(affiliate_context, data)
-            for agent_name in affiliate_agents
-        ]
+        affiliate_results = await self._run_agent_batch(affiliate_agents, affiliate_context, data)
+        for agent_name, result in zip(affiliate_agents, affiliate_results):
+            results[agent_name] = result
 
         # Dropshipping operations (Email Marketing department)
         dropship_context = f"Dropshipping operations for: {context}"
         dropship_agents = ["cascade", "torrent"]
-        dropship_tasks = [
-            self.agents[agent_name].think_and_act(dropship_context, data)
-            for agent_name in dropship_agents
-        ]
+        dropship_results = await self._run_agent_batch(dropship_agents, dropship_context, data)
+        for agent_name, result in zip(dropship_agents, dropship_results):
+            results[agent_name] = result
 
         # Operations integrity (Corporate Execution department)
         integrity_context = f"Operational integrity for: {context}"
         integrity_agents = ["keeper", "sentinel", "pulse"]
-        integrity_tasks = [
-            self.agents[agent_name].think_and_act(integrity_context, data)
-            for agent_name in integrity_agents
-        ]
+        integrity_results = await self._run_agent_batch(integrity_agents, integrity_context, data)
+        for agent_name, result in zip(integrity_agents, integrity_results):
+            results[agent_name] = result
 
         # Customer operations (Corporate Execution department)
         customer_context = f"Customer operations for: {context}"
         customer_agents = ["relay", "harbor"]
-        customer_tasks = [
-            self.agents[agent_name].think_and_act(customer_context, data)
-            for agent_name in customer_agents
-        ]
+        customer_results = await self._run_agent_batch(customer_agents, customer_context, data)
+        for agent_name, result in zip(customer_agents, customer_results):
+            results[agent_name] = result
 
         # Quality & policy (Corporate Execution department)
         quality_context = f"Quality and compliance for: {context}"
         quality_agents = ["muse", "lex"]
-        quality_tasks = [
-            self.agents[agent_name].think_and_act(quality_context, data)
-            for agent_name in quality_agents
-        ]
-
-        # Revenue innovation (moved to Corporate Analytics - handled separately below)
+        quality_results = await self._run_agent_batch(quality_agents, quality_context, data)
+        for agent_name, result in zip(quality_agents, quality_results):
+            results[agent_name] = result
 
         # Creative and product development (Creative & Product department)
         creative_context = f"Creative strategy for: {context}"
         creative_agents = ["lyra", "aurora", "echo", "quill"]
-        creative_tasks = [
-            self.agents[agent_name].think_and_act(creative_context, data)
-            for agent_name in creative_agents
-        ]
+        creative_results = await self._run_agent_batch(creative_agents, creative_context, data)
+        for agent_name, result in zip(creative_agents, creative_results):
+            results[agent_name] = result
 
         # Technical infrastructure (Tech & Infrastructure department)
         tech_context = f"Technical optimization for: {context}"
         tech_agents = ["forge", "titan", "aegis", "noir"]
-        tech_tasks = [
-            self.agents[agent_name].think_and_act(tech_context, data)
-            for agent_name in tech_agents
-        ]
+        tech_results = await self._run_agent_batch(tech_agents, tech_context, data)
+        for agent_name, result in zip(tech_agents, tech_results):
+            results[agent_name] = result
 
         # Legal and health (Legal & Sovereignty, Health & Human Factor departments)
         support_context = f"Support functions for: {context}"
         support_agents = ["hermes", "obsidian", "seraph", "wellnesscoordinator"]
-        support_tasks = [
-            self.agents[agent_name].think_and_act(support_context, data)
-            for agent_name in support_agents
-        ]
+        support_results = await self._run_agent_batch(support_agents, support_context, data)
+        for agent_name, result in zip(support_agents, support_results):
+            results[agent_name] = result
 
         # Revenue Strategy Cell (Idea Department) - generates revenue plays
         strategy_context = f"Generate revenue plays for: {context}"
         strategy_agents = ["strategydirector", "marketanalyst", "opportunityscout", "playvalidator"]
-        strategy_tasks = [
-            self.agents[agent_name].think_and_act(strategy_context, data)
-            for agent_name in strategy_agents
-        ]
+        strategy_results = await self._run_agent_batch(strategy_agents, strategy_context, data)
+        for agent_name, result in zip(strategy_agents, strategy_results):
+            results[agent_name] = result
 
         # Corporate Analytics - data analysis and reporting
         analytics_context = f"Data analysis and reporting for: {context}"
         analytics_agents = ["genesis", "dataanalyst", "metricsreporter"]
-        analytics_tasks = [
-            self.agents[agent_name].think_and_act(analytics_context, data)
-            for agent_name in analytics_agents
-        ]
+        analytics_results = await self._run_agent_batch(analytics_agents, analytics_context, data)
+        for agent_name, result in zip(analytics_agents, analytics_results):
+            results[agent_name] = result
 
         # Revenue Execution - executes revenue streams from Idea Department
         execution_context = f"Execute revenue streams for: {context}"
         execution_agents = ["executioncommander", "launchspecialist", "revenueoperator"]
-        execution_tasks = [
-            self.agents[agent_name].think_and_act(execution_context, data)
-            for agent_name in execution_agents
-        ]
+        execution_results = await self._run_agent_batch(execution_agents, execution_context, data)
+        for agent_name, result in zip(execution_agents, execution_results):
+            results[agent_name] = result
+
+        # Lead Generation & Acquisition
+        lead_context = f"Lead generation and acquisition for: {context}"
+        lead_agents = ["webscraper", "leadqualifier", "listbuilder"]
+        lead_results = await self._run_agent_batch(lead_agents, lead_context, data)
+        for agent_name, result in zip(lead_agents, lead_results):
+            results[agent_name] = result
 
         # Website Growth & Digital Presence - manages websites, content, SEO, social, affiliates, community
         website_context = f"Website growth and digital presence for: {context}"
         website_agents = ["websitemanager", "contentstrategist", "seospecialist", "socialintegrator", "affiliatemanager", "trafficanalyst", "communitymanager"]
-        website_tasks = [
-            self.agents[agent_name].think_and_act(website_context, data)
-            for agent_name in website_agents
-        ]
+        website_results = await self._run_agent_batch(website_agents, website_context, data)
+        for agent_name, result in zip(website_agents, website_results):
+            results[agent_name] = result
 
-        # Execute all departments in parallel - synchronized team execution
-        logger.info("🔄 All departments executing in parallel - synchronized team operation")
-        all_tasks = (
-            revenue_tasks + affiliate_tasks + dropship_tasks + integrity_tasks +
-            customer_tasks + quality_tasks + creative_tasks +
-            tech_tasks + support_tasks + strategy_tasks + execution_tasks + analytics_tasks + website_tasks
-        )
-        
-        # Run all agents in parallel
-        all_results = await asyncio.gather(*all_tasks, return_exceptions=True)
-        
-        # Map results back to agent names
-        agent_names = (
-            revenue_agents + affiliate_agents + dropship_agents + integrity_agents +
-            customer_agents + quality_agents + creative_agents +
-            tech_agents + support_agents + strategy_agents + execution_agents + analytics_agents
-        )
-        
-        for agent_name, result in zip(agent_names, all_results):
-            if isinstance(result, Exception):
-                logger.error(f"Agent {agent_name} error: {result}")
-                results[agent_name] = {"error": str(result)}
-            else:
-                results[agent_name] = result
-
+        logger.info("✅ All departments executed with controlled concurrency")
         logger.info("✅ Synchronized autonomous AI decision cycle complete - all departments worked together")
 
         return {
@@ -3688,7 +3732,7 @@ class AIRevenueAgentCorporation:
                 for name, result in results.items()
             ],
             "overall_confidence": sum(r.get("confidence", 80) for r in results.values())
-            / len(results),
+            / len(results) if results else 0,
             "priority_actions": [
                 r for r in results.values() if r.get("requires_action", False)
             ],

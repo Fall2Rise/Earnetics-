@@ -169,3 +169,6 @@ docker-compose.override.yml
 # If you intentionally want to track built frontend (generally NO), remove dist ignores above.
 
 
+
+# OpenMemory - IDE/Assistant specific rules
+.cursor\rules\openmemory.mdc

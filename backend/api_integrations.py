@@ -21,7 +21,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - legacy path fallback
     from credentials_store import get_secret, describe_secrets
 
-from backend.llm_client import LLMGenerationError, LLMNotConfiguredError, LLMClient
+from backend.llm import LLMGateway
 from backend.integration_registry import summarize_connectors
 from backend.audit_log import log_event
 class StripeIntegration:
@@ -127,23 +127,12 @@ class ContentGenerationIntegration:
     """LLM-backed content generation (defaults to local Ollama)."""
     def __init__(self, provider: Optional[str] = None, model: Optional[str] = None):
         self.provider = provider or os.getenv("LLM_PROVIDER", "ollama")
-        self._client = LLMClient(provider=self.provider, model=model)
-        self.enabled = self._client.configured
-        self._init_error = self._client.init_error
-        if not self.enabled:
-            message = self._init_error or "LLM provider not configured"
-            logger.warning(message)
+        # LLMClient replaced by LLMGateway
+        self.enabled = True 
+        self._init_error = None
+
     async def generate_product_content(self, topic: str, product_type: str) -> Dict:
         """Generate product content using the configured LLM."""
-        if not self.enabled:
-            audit_event(
-                "llm.generate_product_content",
-                status="error",
-                message=self._init_error or "LLM provider not configured",
-                topic=topic,
-                product_type=product_type,
-            )
-            return {"error": self._init_error or "LLM provider not configured"}
         prompts = {
             "ebook": f"Create a comprehensive outline for an ebook about {topic}. Include 5 chapter titles and brief descriptions.",
             "course": f"Design a complete online course about {topic}. Include modules, lessons, and learning objectives.",
@@ -154,12 +143,17 @@ class ContentGenerationIntegration:
         )
         user_prompt = prompts.get(product_type, prompts["ebook"])
         try:
-            response = await self._client.generate(
-                system_prompt,
-                user_prompt,
+            response = await LLMGateway.generate(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
                 max_tokens=1000,
                 temperature=0.7,
+                department="Content Engine"
             )
+            
+            if not response.ok:
+                 return {"error": response.error.message if response.error else "Unknown error"}
+
             result = {
                 "content": response.content,
                 "provider": self.provider,
@@ -170,7 +164,7 @@ class ContentGenerationIntegration:
                 product_type=product_type,
             )
             return result
-        except (LLMGenerationError, LLMNotConfiguredError) as exc:
+        except Exception as exc:
             audit_event(
                 "llm.generate_product_content",
                 status="error",
@@ -676,48 +670,83 @@ class RevenueInnovationIntegration:
     """LLM-driven ideation for new revenue streams."""
 
     def __init__(self) -> None:
-        self.llm_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
-        self.enabled = self.llm_client.configured
-        self.init_error = self.llm_client.init_error
-        if not self.enabled:
-            logger.warning(self.init_error or "LLM provider not configured for innovation pipeline")
+        # self.llm_client = LLMClient(provider=os.getenv("LLM_PROVIDER", "ollama"))
+        self.enabled = True # self.llm_client.configured
+        self.init_error = None # self.llm_client.init_error
+        # if not self.enabled:
+        #     logger.warning(self.init_error or "LLM provider not configured for innovation pipeline")
 
     async def propose_streams(self, company_context: Dict[str, Any], count: int = 5) -> Dict[str, Any]:
         if not self.enabled:
             return {"success": False, "error": self.init_error or "LLM provider not configured"}
-        system_prompt = "You are the Chief Innovation Officer for a portfolio of AI-driven businesses."
+        
+        system_prompt = (
+            "You are the Chief Innovation Officer. "
+            "You MUST return ONLY valid JSON. "
+            "Do not include any introductory text, markdown formatting, or explanations."
+        )
         user_prompt = (
-            "Based on the following context, propose unique revenue streams."
-            " Return strict JSON with a list named streams where each stream has"
-            " name, description, estimated_setup_time_days, required_integrations, and projected_monthly_revenue.\n"
-            f"Context: {json.dumps(company_context, ensure_ascii=False)}\n"
-            f"Number of streams: {count}"
+            f"Based on the context, propose {count} unique revenue streams.\n"
+            "Format:\n"
+            "{\n"
+            '  "streams": [\n'
+            '    {\n'
+            '      "name": "Stream Name",\n'
+            '      "description": "Detailed description...",\n'
+            '      "estimated_setup_time_days": 14,\n'
+            '      "required_integrations": ["stripe", "email"],\n'
+            '      "projected_monthly_revenue": 5000\n'
+            '    }\n'
+            '  ]\n'
+            "}\n"
+            f"Context: {json.dumps(company_context, ensure_ascii=False)}"
         )
         try:
-            response = await self.llm_client.generate(system_prompt, user_prompt, temperature=0.6, max_tokens=1200)
+            response = await LLMGateway.generate(
+                prompt=user_prompt, 
+                system_prompt=system_prompt, 
+                temperature=0.6, 
+                max_tokens=1200,
+                department="Innovation"
+            )
+            
+            if not response.ok:
+                return {"success": False, "error": response.error.message if response.error else "Unknown error"}
+                
             raw_content = response.content.strip()
+            
+            # Attempt to extract JSON substring if chatty
             try:
+                # Find first {
+                start = raw_content.find("{")
+                # Find last }
+                end = raw_content.rfind("}")
+                
+                if start != -1 and end != -1:
+                    json_str = raw_content[start : end + 1]
+                    parsed = json.loads(json_str)
+                    return {"success": True, "streams": parsed.get("streams", []), "raw": raw_content}
+                
+                # If no brackets found, try parsing whole string
                 parsed = json.loads(raw_content)
+                return {"success": True, "streams": parsed.get("streams", []), "raw": raw_content}
+                
             except json.JSONDecodeError:
-                parsed = {"streams": self._fallback_parse(raw_content)}
-            return {"success": True, "streams": parsed.get("streams", []), "raw": raw_content}
-        except (LLMGenerationError, LLMNotConfiguredError) as exc:
+                # If valid JSON cannot be found, DO NOT fallback to junk data.
+                # User requested "real numbers no matter what".
+                # Better to fail and retry than to hallucinate "$1000".
+                return {
+                    "success": False, 
+                    "error": "Failed to parse LLM response into JSON", 
+                    "raw": raw_content
+                }
+
+        except Exception as exc:
             return {"success": False, "error": str(exc)}
 
+    # Fallback removed to prevent simulation data generation
     def _fallback_parse(self, text: str) -> List[Dict[str, Any]]:
-        streams: List[Dict[str, Any]] = []
-        for line in text.splitlines():
-            cleaned = line.strip('- *')
-            if not cleaned:
-                continue
-            streams.append({
-                "name": cleaned[:80],
-                "description": cleaned,
-                "estimated_setup_time_days": 30,
-                "required_integrations": ["manual_review"],
-                "projected_monthly_revenue": 1000,
-            })
-        return streams
+        return []
 
 class APIIntegrationManager:
     """Manages all API integrations"""

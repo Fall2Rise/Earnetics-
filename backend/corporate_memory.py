@@ -221,6 +221,12 @@ class CorporateMemory:
 
 
     def create_objective(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        # Ensure timestamps
+        now = datetime.utcnow().isoformat()
+        if "created_at" not in record:
+            record["created_at"] = now
+        if "updated_at" not in record:
+            record["updated_at"] = now
 
         with self._connection() as conn:
 
@@ -391,6 +397,12 @@ class CorporateMemory:
     
 
     def create_task(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        # Ensure timestamps
+        now = datetime.utcnow().isoformat()
+        if "created_at" not in record:
+            record["created_at"] = now
+        if "updated_at" not in record:
+            record["updated_at"] = now
 
         with self._connection() as conn:
 

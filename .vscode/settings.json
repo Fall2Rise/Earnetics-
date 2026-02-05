@@ -17,5 +17,6 @@
     "CodeGPT.apiKey": "OpenAI",
     "editor.tabCompletion": "on",
     "diffEditor.codeLens": true,
-    "MutableAI.upsell": true
+    "MutableAI.upsell": true,
+    "chatgpt.gpt3.provider": "Gemini"
 }
