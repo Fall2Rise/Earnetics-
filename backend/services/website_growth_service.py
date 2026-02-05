@@ -22,13 +22,13 @@ class WebsiteGrowthService:
         self.websites = {
             "fallat.digital": {
                 "domain": "fallat.digital",
-                "url": "https://www.fallat.digital",
+                "url": os.getenv("SITE_BASE_URL", "https://www.fallat.digital"),
                 "status": "active",
                 "purpose": "Main corporate website and product showcase"
             },
             "earnetics.live": {
                 "domain": "earnetics.live",
-                "url": "https://www.earnetics.live",
+                "url": os.getenv("SECONDARY_SITE_URL", "https://www.earnetics.live"),
                 "status": "active",
                 "purpose": "AI corporation operations and revenue platform"
             }

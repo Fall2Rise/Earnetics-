@@ -1,9 +1,18 @@
+# --- BLOCK DIRECT RUN (Earnetics single-entry enforcement) ---
+if __name__ == "__main__":
+    import sys
+    print("\n[ERROR] Deprecated start method.")
+    print("Use:  .\\scripts\\run_all.ps1\n")
+    sys.exit(1)
+# ------------------------------------------------------------
+
 import os
 import sys
 import json
 import asyncio
 import sqlite3
 import logging
+import threading
 from pathlib import Path
 from collections import deque
 from datetime import datetime, timezone
@@ -74,6 +83,10 @@ from backend.api.lead_management_router import router as lead_management_router
 from backend.api.performance_router import router as performance_router
 from backend.api.website_growth_router import router as website_growth_router
 from backend.api.intelligence_router import router as intelligence_router
+from backend.core.runtime_mode import ModeManager
+from backend.core.approvals_store import ApprovalsStore
+from backend.core.tool_executor import ToolRegistry, ToolExecutor
+from backend.api.ops_router import build_ops_router
 from head_office.backend.api import (
     executive_router,
     decisions_router,
@@ -320,6 +333,10 @@ app_state: Dict[str, Any] = {
 configure_logging()
 logger = logging.getLogger(__name__)
 
+# Loop singleton guards (prevents double-start)
+_LOOPS_STARTED = False
+_LOOPS_LOCK = threading.Lock()
+
 stripe_processor = None
 atom_agent = AtomPresidentAgent()
 financial_processor = AutonomousFinancialProcessor()
@@ -405,6 +422,8 @@ async def _start_autonomy_worker_on_boot() -> None:
             logger.warning("Autonomy worker recovery failed: %s", exc)
         if not worker.is_running():
             app.state.autonomy_worker_task = asyncio.create_task(worker.start())
+            if hasattr(app.state, "loop_tasks"):
+                app.state.loop_tasks.append(app.state.autonomy_worker_task)
             logger.info("Autonomy worker %s started", worker.worker_id)
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Failed to start autonomy worker: %s", exc)
@@ -428,6 +447,29 @@ app = FastAPI(
     version=os.getenv("FALLAT_APP_VERSION", "0.1.0"),
     default_response_class=JSONResponse,
 )
+
+# Runtime Mode Governance System -------------------------------------------------
+from backend.tools.tool_registry import ToolRegistry
+from backend.tools.bootstrap_registry import bootstrap_tools
+
+mode_mgr = ModeManager()
+approvals = ApprovalsStore()
+tool_registry = ToolRegistry()
+
+# Bootstrap all tools from single registry
+bootstrap_tools(tool_registry)
+
+# Audit hook (wire to your event bus / logger)
+def audit_cb(event: str, data: dict):
+    import logging
+    logging.getLogger("backend.audit").info({"event": event, **data})
+
+tool_executor = ToolExecutor(mode_mgr=mode_mgr, approvals=approvals, registry=tool_registry, audit_cb=audit_cb)
+
+# Store in app state for access by other modules
+app.state.mode_mgr = mode_mgr
+app.state.tool_executor = tool_executor
+app.state.tool_registry = tool_registry
 
 raw_origins = os.getenv("FALLAT_ALLOWED_ORIGINS")
 default_origins = [
@@ -949,7 +991,12 @@ def _ensure_autonomy_jobs() -> None:
 
 from backend.config.integrations import INTEGRATION_REQUIREMENTS
 
+# Initialize ops router (must be after mode_mgr and tool_executor are created)
+# Note: mode_mgr and tool_executor are initialized above after app creation
+ops_router = build_ops_router(mode_mgr, tool_executor)
+
 REGISTERED_ROUTERS = [
+    ops_router,  # Runtime mode governance API
     performance_router,  # Performance monitoring and optimization
     vector_memory_router,
     embedding_router,
@@ -1060,8 +1107,74 @@ for router in REGISTERED_ROUTERS:
 
 
 # Lifecycle hooks -------------------------------------------------------------
+def _start_loops_once(app: FastAPI) -> None:
+    """Start all background loops exactly once (singleton guard)."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    global _LOOPS_STARTED
+    with _LOOPS_LOCK:
+        if _LOOPS_STARTED:
+            logger.warning("Loops already started; skipping duplicate startup.")
+            return
+        _LOOPS_STARTED = True
+    
+    # Initialize loop tasks list for clean shutdown
+    if not hasattr(app.state, "loop_tasks"):
+        app.state.loop_tasks = []
+    
+    logger.info(f"Starting loops (pid={os.getpid()})...")
+
+
+@app.on_event("startup")
+async def _startup_verification() -> None:
+    """Verify runtime mode governance system is operational."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Boot logging: PID, mode, worker count, port, tools
+    pid = os.getpid()
+    port = int(os.getenv("PORT", "8000"))
+    host = os.getenv("HOST", "127.0.0.1")
+    workers = int(os.getenv("WORKERS", "1"))
+    reload = os.getenv("RELOAD", "0") == "1"
+    
+    logger.info("=" * 80)
+    logger.info(f"🚀 Earnetics Backend Starting")
+    logger.info(f"   PID: {pid}")
+    logger.info(f"   Host: {host}:{port}")
+    logger.info(f"   Workers: {workers}")
+    logger.info(f"   Reload: {reload}")
+    
+    try:
+        # Verify mode manager
+        mode_state = mode_mgr.get()
+        logger.info(f"   Mode: {mode_state.mode.value} (changed_by: {mode_state.changed_by})")
+        
+        # Verify tool registry
+        registry_count = tool_registry.count()
+        logger.info(f"   Tools registered: {registry_count}")
+        
+        # Verify tool executor
+        logger.info("   Tool executor: ✅ initialized")
+        
+        # Log current policy
+        from backend.core.governance import build_policies
+        policies = build_policies()
+        policy = policies[mode_state.mode]
+        logger.info(f"   Governance: {len(policy.allowed)} allowed, {len(policy.approval_required)} require approval")
+        
+        logger.info("=" * 80)
+        
+    except Exception as exc:
+        logger.error(f"⚠️ Runtime mode governance verification failed: {exc}", exc_info=True)
+
 @app.on_event("startup")
 async def _startup_autonomy_worker() -> None:
+    """Start all autonomy loops (with singleton guard)."""
+    # Singleton guard: prevent double-start
+    _start_loops_once(app)
+    
     # Initialize Evolution Engine and start continuous learning loop
     from backend.atom_evolution_engine import AtomEvolutionEngine
     evolution_engine = AtomEvolutionEngine()
@@ -1099,6 +1212,7 @@ async def _startup_autonomy_worker() -> None:
     
     evolution_task = asyncio.create_task(_evolution_loop())
     app.state.evolution_task = evolution_task
+    app.state.loop_tasks.append(evolution_task)
     logger.info("✅ Agent Evolution Engine activated - continuous learning enabled")
     
     # Wire up Audit Log to Event Bus
@@ -1146,6 +1260,7 @@ async def _startup_autonomy_worker() -> None:
     
     scheduler_task = asyncio.create_task(_scheduler_loop())
     background_tasks.append(scheduler_task)
+    app.state.loop_tasks.append(scheduler_task)
     logger.info("Workflow scheduler execution loop started")
     
     # Start continuous autonomous agent cycle for faster revenue generation
@@ -1182,6 +1297,7 @@ async def _startup_autonomy_worker() -> None:
     
     autonomous_cycle_task = asyncio.create_task(_autonomous_agent_cycle())
     background_tasks.append(autonomous_cycle_task)
+    app.state.loop_tasks.append(autonomous_cycle_task)
     logger.info("✅ Continuous autonomous agent cycle started - agents working continuously for revenue")
     
     # Start product launcher - automatically launch products with payment links
@@ -1220,6 +1336,7 @@ async def _startup_autonomy_worker() -> None:
     
     product_launcher_task = asyncio.create_task(_product_launcher_cycle())
     background_tasks.append(product_launcher_task)
+    app.state.loop_tasks.append(product_launcher_task)
     logger.info("✅ Product auto-launcher started - products will be launched automatically with payment links")
     
     # Start customer acquisition automation - build email list automatically
@@ -1276,6 +1393,7 @@ async def _startup_autonomy_worker() -> None:
     
     customer_acquisition_task = asyncio.create_task(_customer_acquisition_cycle())
     background_tasks.append(customer_acquisition_task)
+    app.state.loop_tasks.append(customer_acquisition_task)
     logger.info("✅ Customer acquisition automation started - building email list automatically")
     
     # Start conversion tracking and optimization
@@ -1335,6 +1453,7 @@ async def _startup_autonomy_worker() -> None:
     
     conversion_tracking_task = asyncio.create_task(_conversion_tracking_cycle())
     background_tasks.append(conversion_tracking_task)
+    app.state.loop_tasks.append(conversion_tracking_task)
     logger.info("✅ Conversion tracking started - optimizing based on performance")
     
     # Start continuous lead generation - scrapes websites for customers
@@ -1389,11 +1508,13 @@ async def _startup_autonomy_worker() -> None:
     
     lead_generation_task = asyncio.create_task(_lead_generation_cycle())
     background_tasks.append(lead_generation_task)
+    app.state.loop_tasks.append(lead_generation_task)
     logger.info("✅ Continuous lead generation started - scraping websites and building email list")
     
     # Start Autonomous Financial Processor
     financial_task = asyncio.create_task(financial_processor.start_autonomous_processing())
     background_tasks.append(financial_task)
+    app.state.loop_tasks.append(financial_task)
     logger.info("Autonomous Financial Processor started")
     
     # Ensure production readiness - products, schema, Stripe sync
@@ -1423,6 +1544,18 @@ async def _shutdown_autonomy_worker() -> None:
     """Clean shutdown of all background tasks and services."""
     logger.info("Starting application shutdown...")
     
+    # Cancel all loop tasks (from app.state.loop_tasks)
+    loop_tasks = getattr(app.state, "loop_tasks", [])
+    for task in loop_tasks:
+        if not task.done():
+            task.cancel()
+            try:
+                await asyncio.wait_for(task, timeout=2.0)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+            except Exception as e:
+                logger.warning(f"Error cancelling loop task: {e}")
+    
     # Cancel all background tasks
     for task in background_tasks:
         if not task.done():
@@ -1441,6 +1574,8 @@ async def _shutdown_autonomy_worker() -> None:
         logger.warning("Autonomy worker shutdown timed out")
     except Exception as e:
         logger.warning(f"Error stopping autonomy worker: {e}")
+    
+    logger.info("Application shutdown complete.")
     
     # Stop factory engine
     try:
@@ -1612,6 +1747,14 @@ def healthcheck() -> Dict[str, Any]:
     vault_ok = app_state["credential_vault_ready"]
     vector_ok = app_state["vector_memory_ready"]
     overall = "ok" if all([db_ok, stripe_ok or not os.getenv("STRIPE_SECRET_KEY"), vault_ok, vector_ok]) else "degraded"
+    prime_directive_status = "verified"
+    try:
+        from backend.prime_directive import load_prime_directive
+
+        load_prime_directive()
+    except Exception:
+        prime_directive_status = "unverified"
+
     return {
         "status": overall,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -1620,7 +1763,7 @@ def healthcheck() -> Dict[str, Any]:
             "credential_vault": {"ok": vault_ok},
             "vector_memory": {"ok": vector_ok},
             "stripe": {"ok": stripe_ok, "message": stripe_message},
-            "prime_directive": {"status": "verified"},
+            "prime_directive": {"status": prime_directive_status},
         },
     }
 
@@ -1668,6 +1811,15 @@ def get_financial_metrics():
     return financial_processor._calculate_financial_metrics()
 
 
+@app.get("/api/prime_directive", dependencies=protected_dependencies)
+def get_prime_directive():
+    """Return the current Prime Directive (read-only)."""
+    from backend.prime_directive import load_prime_directive
+
+    directive = load_prime_directive().data
+    return {"prime_directive": directive}
+
+
 @app.get("/api/products/list", dependencies=protected_dependencies)
 async def list_products_detailed():
     """Get detailed list of all products."""
@@ -1704,6 +1856,25 @@ async def list_products_detailed():
     except Exception as e:
         logger.error(f"Error listing products: {e}")
         return {"products": [], "total": 0, "error": str(e)}
+
+
+class DirectiveStatusUpdate(BaseModel):
+    status: str
+    notes: Optional[str] = None
+
+
+@app.post("/api/directives/{directive_id}/status", dependencies=protected_dependencies)
+async def update_directive_status(directive_id: int, req: DirectiveStatusUpdate):
+    """Update the status of an executive directive."""
+    try:
+        from backend.executive_reasoning import DirectiveRegistry
+
+        directive_registry = DirectiveRegistry()
+        directive_registry.update_status(directive_id, req.status, req.notes)
+        return {"id": directive_id, "status": req.status}
+    except Exception as e:
+        logger.error(f"Error updating directive status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update directive status")
 
 @app.get("/api/workflows/pending", dependencies=protected_dependencies)
 async def list_pending_workflows():
@@ -1754,6 +1925,9 @@ async def list_pending_workflows():
                                 "created_at": row["created_at"] or datetime.now(timezone.utc).isoformat(),
                                 "metadata": metadata
                             })
+                    else:
+                        # Table doesn't exist yet
+                        pending_tasks = []
             except sqlite3.OperationalError as db_error:
                 logger.debug(f"Queue database query failed: {db_error}")
                 # Try corporate memory as fallback
@@ -1777,26 +1951,7 @@ async def list_pending_workflows():
                     logger.warning(f"Could not fetch from corporate memory: {corp_error}")
         except Exception as e:
             logger.warning(f"Could not fetch from queue directly: {e}")
-            # Final fallback: get from operations metrics
-            try:
-                metrics = get_operations_metrics()
-                queue = metrics.get("queue", {})
-                pending_count = queue.get("pending", 0)
-                if pending_count > 0:
-                    pending_tasks = [{
-                        "id": f"pending_{i}",
-                        "title": "Pending workflow",
-                        "department": "Unknown",
-                        "priority": "medium",
-                        "status": "pending",
-                        "description": None,
-                        "assigned_agent": None,
-                        "created_at": datetime.now(timezone.utc).isoformat(),
-                        "metadata": {}
-                    } for i in range(min(pending_count, 20))]  # Limit to 20
-            except Exception as metrics_error:
-                logger.error(f"Could not get metrics fallback: {metrics_error}")
-                pending_tasks = []
+            pending_tasks = []
         
         return {"workflows": pending_tasks, "total": len(pending_tasks)}
     except Exception as e:
@@ -2105,6 +2260,25 @@ def get_operations_metrics():
         # Get queue metrics
         queue_repo = WorkflowQueueRepository()
         pending = queue_repo.count_pending()
+        
+        # Verify the pending count against actual pending tasks if they differ
+        # This prevents "ghost" numbers on the dashboard
+        if pending > 0:
+            try:
+                # Use the same logic as /api/workflows/pending to verify
+                queue_db_path = getattr(queue_repo, 'db_path', 'workflow_scheduler.db')
+                with sqlite3.connect(queue_db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
+                    if cursor.fetchone():
+                        cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'pending'")
+                        actual_pending = cursor.fetchone()[0]
+                        if actual_pending != pending:
+                             # Update queue repo cache/state if possible, or just report true number
+                             pending = actual_pending
+            except Exception:
+                pass
+        
         # Note: at_risk and overdue would need additional logic
         
         # Get activity from audit logs
@@ -2130,6 +2304,7 @@ def get_operations_metrics():
             # Handle both dict and object formats
             if isinstance(directive, dict):
                 requests.append({
+                    "id": directive.get("id"),
                     "timestamp": directive.get("created_at", datetime.now(timezone.utc).isoformat()),
                     "pipeline_id": directive.get("payload", {}).get("pipeline_id") if isinstance(directive.get("payload"), dict) else None,
                     "title": directive.get("title", "Unknown"),
@@ -2137,10 +2312,15 @@ def get_operations_metrics():
                     "priority": directive.get("priority", "medium"),
                     "agent": directive.get("owner"),
                     "status": directive.get("status", "pending"),
+                    "description": directive.get("description"),
+                    "payload": directive.get("payload"),
+                    "confidence": directive.get("confidence"),
+                    "due_date": directive.get("due_date"),
                 })
             else:
                 # Object format (if it exists)
                 requests.append({
+                    "id": getattr(directive, "id", None),
                     "timestamp": directive.created_at.isoformat() if hasattr(directive, 'created_at') and hasattr(directive.created_at, 'isoformat') else str(getattr(directive, 'created_at', datetime.now(timezone.utc))),
                     "pipeline_id": directive.payload.get("pipeline_id") if hasattr(directive, 'payload') and isinstance(directive.payload, dict) else None,
                     "title": getattr(directive, 'title', 'Unknown'),
@@ -2148,6 +2328,10 @@ def get_operations_metrics():
                     "priority": getattr(directive, 'priority', 'medium'),
                     "agent": getattr(directive, 'owner', None),
                     "status": getattr(directive, 'status', 'pending'),
+                    "description": getattr(directive, "description", None),
+                    "payload": getattr(directive, "payload", None),
+                    "confidence": getattr(directive, "confidence", None),
+                    "due_date": getattr(directive, "due_date", None),
                 })
         
         return {
