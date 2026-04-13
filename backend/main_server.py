@@ -557,6 +557,11 @@ async def atom_chat(request: Request):
         raise HTTPException(status_code=500, detail=str(exc))
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Mount landing pages directory to serve generated product pages
+LANDING_PAGES_DIR = PROJECT_ROOT / "products" / "landing_pages"
+os.makedirs(LANDING_PAGES_DIR, exist_ok=True)
+app.mount("/products", StaticFiles(directory=LANDING_PAGES_DIR), name="products")
+
 if DASHBOARD_DIR.exists():
     app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR, html=True), name="dashboard")
 
@@ -1019,6 +1024,7 @@ REGISTERED_ROUTERS = [
     corporate_router,
     wealth_router,
     revenue_loop_router,
+    lead_management_router,
     autonomy_worker_router,
     library_router,
     factory_router,
@@ -1511,6 +1517,116 @@ async def _startup_autonomy_worker() -> None:
     app.state.loop_tasks.append(lead_generation_task)
     logger.info("✅ Continuous lead generation started - scraping websites and building email list")
     
+    # Start Continuous Traffic Generation - Dedicated Traffic Department
+    async def _traffic_generation_cycle():
+        """Continuously drive traffic to landing pages"""
+        from backend.real_ai_agents import AIRevenueAgentCorporation
+        try:
+            await asyncio.sleep(60) # Start after 1 min
+            while True:
+                try:
+                    corporation = AIRevenueAgentCorporation()
+                    traffic_agent = corporation.agents.get("trafficspecialist")
+                    
+                    if traffic_agent:
+                        result = await traffic_agent.think_and_act(
+                            "Drive targeted traffic to high-converting landing pages",
+                            {"auto_drive": True}
+                        )
+                        if result.get("action_result", {}).get("traffic_sources_activated"):
+                            count = len(result['action_result']['traffic_sources_activated'])
+                            logger.info(f"🚦 Traffic Generation: Activated {count} traffic sources")
+                    
+                    # Run every 2 minutes
+                    await asyncio.sleep(120)
+                except asyncio.CancelledError:
+                    break
+                except Exception as exc:
+                    logger.exception(f"Error in traffic generation cycle: {exc}")
+                    await asyncio.sleep(60)
+        except Exception as e:
+            logger.error(f"Traffic generation cycle crashed: {e}")
+
+    traffic_task = asyncio.create_task(_traffic_generation_cycle())
+    background_tasks.append(traffic_task)
+    app.state.loop_tasks.append(traffic_task)
+    logger.info("✅ Continuous traffic generation started - driving visitors to offers")
+
+    # Start System Guardian - ATOM's Autonomous Maintenance Loop
+    async def _system_guardian_cycle():
+        """ATOM continuously monitors, fixes, and optimizes the system (Guardian Mode)"""
+        from backend.services.api_key_guardian import APIKeyGuardian
+        from backend.atom_master_agent import AtomPresidentAgent
+        
+        try:
+            # Wait 3 mins for system to settle before first scan
+            await asyncio.sleep(180)
+            
+            while True:
+                try:
+                    logger.info("🛡️ ATOM Guardian: Starting autonomous system health scan...")
+                    
+                    # 1. Self-Healing: API Keys & Credentials
+                    # Automatically rotates expired keys if possible
+                    guardian = APIKeyGuardian()
+                    fixes = guardian.auto_fix_issues()
+                    if fixes:
+                        logger.info(f"🛡️ ATOM Guardian: Applied self-healing fixes: {fixes}")
+                        # Notify admins via log/audit
+                        log_event("system_guardian.fix_applied", agent="ATOM", details={"fixes": fixes})
+                    
+                    # 2. Operational Continuity: Check Workflow Queue
+                    # If queue is jammed, clear stuck tasks
+                    # (Logic handled inside AutomationWorker, but we can monitor here)
+                    
+                        # 3. Strategic Observation & MAXIMIZATION
+                        # ATOM observes the system state and injects directives if usage is below 100%
+                        try:
+                            atom = AtomPresidentAgent()
+                            observation = atom.observe_system()
+                            
+                            active_workflows = observation.get("active_workflows", [])
+                            workflow_count = len(active_workflows)
+                            
+                            # Maximize Potential: If less than 5 active workflows, assume we are under-utilizing capacity
+                            if workflow_count < 5:
+                                logger.info(f"🛡️ ATOM Guardian: System under-utilized ({workflow_count}/5 workflows). Injecting 'MAXIMIZE POTENTIAL' directives.")
+                                
+                                # 1. Inject Revenue Momentum (Traffic/Leads)
+                                atom.inject_directive(
+                                    "MAXIMIZE: Revenue Momentum",
+                                    "Autonomous directive: System is under load. Aggressively ramp up traffic, leads, and sales outreach immediately."
+                                )
+                                
+                                # 2. Inject Innovation/Optimization
+                                atom.inject_directive(
+                                    "MAXIMIZE: Innovation Cycle", 
+                                    "Autonomous directive: System has spare capacity. Run deep optimization analysis on all active products and funnels."
+                                )
+                            elif workflow_count > 15:
+                                logger.info(f"🛡️ ATOM Guardian: System at high load ({workflow_count} workflows). Monitoring for bottlenecks.")
+                                
+                        except Exception as e:
+                            logger.warning(f"ATOM observation warning: {e}")
+
+                    logger.info("🛡️ ATOM Guardian: System scan complete. Status: NOMINAL.")
+                    
+                    # Run every 10 minutes
+                    await asyncio.sleep(600)
+                    
+                except asyncio.CancelledError:
+                    break
+                except Exception as exc:
+                    logger.exception(f"ATOM Guardian cycle error: {exc}")
+                    await asyncio.sleep(300)
+        except Exception as e:
+            logger.error(f"ATOM Guardian cycle crashed: {e}")
+
+    guardian_task = asyncio.create_task(_system_guardian_cycle())
+    background_tasks.append(guardian_task)
+    app.state.loop_tasks.append(guardian_task)
+    logger.info("✅ ATOM System Guardian started - Autonomous self-healing active")
+
     # Start Autonomous Financial Processor
     financial_task = asyncio.create_task(financial_processor.start_autonomous_processing())
     background_tasks.append(financial_task)

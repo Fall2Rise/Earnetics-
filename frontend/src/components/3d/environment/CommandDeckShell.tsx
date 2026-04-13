@@ -33,34 +33,86 @@ export const CommandDeckShell: React.FC<Props> = ({ showGrid = true }) => {
 
   return (
     <group>
-      {/* Floor plane (subtle metal base) */}
+      {/* --- FLOOR --- */}
+      {/* Base Floor (Reflective Dark Glass) */}
       <mesh
         receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, floorY, 0]}
       >
         <planeGeometry args={[FLOOR_W, FLOOR_D]} />
-        <primitive object={mats.darkMetal} attach="material" />
+        <meshStandardMaterial 
+            color="#050505" // Slightly lighter black
+            roughness={0.2} // Increased roughness to blur reflections
+            metalness={0.8} // Reduced metalness
+            emissive="#000000"
+            emissiveIntensity={0}
+        />
       </mesh>
 
-      {/* Optional grid helper overlay for legibility */}
+      {/* Cyber Grid Overlay (Cyan/Magenta) */}
       {showGrid && (
-        <gridHelper
-          args={[160, 80, "#0a2940", "#051525"]}
-          position={[0, floorY + 0.02, 0]}
-        />
+        <group position={[0, floorY + 0.05, 0]}>
+            {/* Primary Grid */}
+            <gridHelper
+            args={[300, 60, "#00ffff", "#002233"]}
+            position={[0, 0, 0]}
+            />
+            {/* Secondary Grid (finer) */}
+            <gridHelper
+            args={[300, 150, "#ff00ff", "#000000"]}
+            position={[0, 0.01, 0]}
+            />
+        </group>
       )}
 
-      {/* Circular command deck (matches reference ring layout) */}
+      {/* --- COMMAND DECK --- */}
+      {/* Circular command deck base */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, platformY + 0.1, 0]} receiveShadow>
-        <circleGeometry args={[PLATFORM_R, 128]} />
-        <primitive object={mats.softPanel} attach="material" />
+        <circleGeometry args={[PLATFORM_R, 64]} />
+        <meshStandardMaterial 
+            color="#050510"
+            roughness={0.1}
+            metalness={0.9}
+            emissive="#004488"
+            emissiveIntensity={0.5}
+        />
       </mesh>
+
+      {/* Volumetric Light Pillars (Simulated with transparent cones) */}
+      {[0, 90, 180, 270].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          return (
+            <mesh key={`light-${deg}`} position={[Math.cos(rad) * 25, 10, Math.sin(rad) * 25]} rotation={[0, 0, 0]}>
+                <coneGeometry args={[2, 40, 32, 1, true]} />
+                <meshBasicMaterial 
+                    color="#00ffff" 
+                    transparent 
+                    opacity={0.08} 
+                    side={THREE.DoubleSide} 
+                    depthWrite={false}
+                    blending={THREE.AdditiveBlending}
+                />
+            </mesh>
+          );
+      })}
+
+      {/* Rotating Tech Ring (Animation would be handled by a ref and useFrame, keeping it static for now but visually complex) */}
+      <group position={[0, 5, 0]} rotation={[0.2, 0, 0]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[15, 0.2, 16, 100]} />
+            <meshBasicMaterial color="#00ffff" toneMapped={false} />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, Math.PI / 4]}>
+            <torusGeometry args={[18, 0.1, 16, 100]} />
+            <meshBasicMaterial color="#ff00ff" toneMapped={false} />
+        </mesh>
+      </group>
 
       {/* Primary halo glow */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, platformY + 0.105, 0]}>
         <ringGeometry args={[PLATFORM_R - 6, PLATFORM_R - 3.4, 128]} />
-        <meshBasicMaterial color="#0fe7ff" transparent opacity={0.1} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#0fe7ff" transparent opacity={0.3} blending={THREE.AdditiveBlending} />
       </mesh>
 
       {/* Inner ring lanes */}
@@ -86,7 +138,7 @@ export const CommandDeckShell: React.FC<Props> = ({ showGrid = true }) => {
         <primitive object={mats.emissiveLine} attach="material" />
       </mesh>
 
-      {/* Main platform (where your zones live) */}
+      {/* Main platform (where your zones live) - UPGRADED SURFACE */}
       <RoundedBox
         args={[PLATFORM_W, PLATFORM_H, PLATFORM_D]}
         radius={2.4}
@@ -95,8 +147,45 @@ export const CommandDeckShell: React.FC<Props> = ({ showGrid = true }) => {
         castShadow
         receiveShadow
       >
-        <primitive object={mats.softPanel} attach="material" />
+        <meshStandardMaterial 
+            color="#050a10"
+            roughness={0.15}
+            metalness={0.8}
+            emissive="#001133"
+            emissiveIntensity={0.15}
+        />
       </RoundedBox>
+
+      {/* Platform Surface Grid - VISIBLE ON TOP - Lifted higher to prevent z-fighting */}
+      {showGrid && (
+        <group position={[0, 0.05, 0]}>
+            <gridHelper
+                args={[80, 40, "#00ffff", "#001133"]}
+                position={[0, 0, 0]}
+            />
+            <gridHelper
+                args={[80, 80, "#ff00ff", "#000000"]}
+                position={[0, 0.01, 0]}
+            />
+        </group>
+      )}
+
+      {/* NEW: Holographic Perimeter Fence - Undeniable visual update */}
+      <mesh position={[0, platformY + 1.5, 0]}>
+        <cylinderGeometry args={[PLATFORM_R - 0.5, PLATFORM_R - 0.5, 2, 64, 1, true]} />
+        <meshBasicMaterial 
+            color="#00ffff" 
+            transparent 
+            opacity={0.1} 
+            side={THREE.DoubleSide} 
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+        />
+      </mesh>
+      <mesh position={[0, platformY + 2.5, 0]} rotation={[-Math.PI/2, 0, 0]}>
+        <ringGeometry args={[PLATFORM_R - 0.6, PLATFORM_R - 0.4, 64]} />
+        <meshBasicMaterial color="#00ffff" />
+      </mesh>
 
       {/* Perimeter wall ring */}
       <mesh position={[0, platformY + 1.2, 0]}>

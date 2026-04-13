@@ -15,6 +15,9 @@
         }
     },
     "CodeGPT.apiKey": "OpenAI",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.useEnvFile": true,
+    "python.envFile": "${workspaceFolder}/.env",
     "editor.tabCompletion": "on",
     "diffEditor.codeLens": true,
     "MutableAI.upsell": true,

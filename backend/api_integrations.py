@@ -294,7 +294,13 @@ class SocialMediaIntegration:
 
     async def post_to_twitter(self, content: str) -> Dict[str, Any]:
         if not self.enabled:
-            return {"error": "Twitter not configured"}
+            audit_event(
+                "social.post_twitter",
+                status="pending_approval",
+                message="Twitter not configured or safety mode active. Action queued.",
+                content=content[:50] + "..."
+            )
+            return {"error": "Twitter not configured", "status": "queued_for_approval"}
         try:
             import tweepy
 
@@ -302,8 +308,15 @@ class SocialMediaIntegration:
             auth.set_access_token(self.twitter_access_token, self.twitter_access_secret)
             api = tweepy.API(auth)
             tweet = api.update_status(content)
+            audit_event(
+                "social.post_twitter",
+                status="success",
+                tweet_id=tweet.id,
+                content=content[:50] + "..."
+            )
             return {"tweet_id": tweet.id, "url": f"https://twitter.com/user/status/{tweet.id}", "posted_at": tweet.created_at.isoformat()}
         except Exception as exc:  # pragma: no cover - network failure
+            audit_event("social.post_twitter", status="error", message=str(exc))
             return {"error": str(exc)}
 
     async def generate_social_content(self, product_name: str, platform: str) -> List[str]:

@@ -188,8 +188,11 @@ class MailOpsService:
             cur.execute("UPDATE mailops_campaigns SET status = 'sending', updated_at = ? WHERE id = ?", (_utcnow(), campaign_id))
             conn.commit()
             
-            # Get active subscribers
-            cur.execute("SELECT email, first_name FROM mailops_subscribers WHERE status = 'active'")
+            # Get active subscribers (with Warmup Limit)
+            # Default to max 25 emails per campaign during warmup phase
+            warmup_limit = int(os.getenv("EMAIL_WARMUP_LIMIT", "25"))
+            
+            cur.execute(f"SELECT email, first_name FROM mailops_subscribers WHERE status = 'active' LIMIT {warmup_limit}")
             subscribers = cur.fetchall()
             
             sent_count = 0

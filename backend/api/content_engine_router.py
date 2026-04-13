@@ -22,6 +22,12 @@ class DistributeRequest(BaseModel):
     asset_id: str
     platforms: List[str]
 
+@router.get("/list")
+async def list_content(type: Optional[str] = None, limit: int = 50):
+    """List generated content assets."""
+    from backend.services.content_service import content_service
+    return {"assets": content_service.list_content(type, limit)}
+
 @router.post("/generate")
 async def generate_master(request: GenerateRequest):
     """Generate master long-form content."""

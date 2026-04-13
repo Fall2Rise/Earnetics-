@@ -65,6 +65,8 @@ import { DashboardControls } from '../dashboard/DashboardControls';
 import { WorkflowMonitorPanel } from '../dashboard/WorkflowMonitorPanel';
 import { ReasonExplainEnginePanel } from '../dashboard/ReasonExplainEnginePanel';
 import { ResourceMonitorPanel } from '../dashboard/ResourceMonitorPanel';
+import { TrafficPulsePanel } from '../dashboard/TrafficPulsePanel';
+import { RevenueLoopsPanel } from '../dashboard/RevenueLoopsPanel';
 
 type CommandSection =
   | 'overview'
@@ -106,6 +108,8 @@ type CommandSection =
   | 'leads'
   | 'marketing'
   | 'subscribers'
+  | 'traffic'
+  | 'revenue-loops'
   | 'head-office';
 
 // Navigation Categories
@@ -152,9 +156,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     category: 'Agents',
     items: [
-      { key: 'agents', label: 'Roster' },
-      { key: 'agent-nexus', label: 'Nexus' },
-      { key: 'agent-dna', label: 'DNA' },
+      { key: 'agents', label: 'Headquarters' },
       { key: 'dead-agent-protocol', label: 'Protocols' },
       { key: 'quantum-succession', label: 'Succession' },
     ]
@@ -163,8 +165,10 @@ const NAV_GROUPS: NavGroup[] = [
     category: 'Financial',
     items: [
       { key: 'financial', label: 'Finance' },
+      { key: 'revenue-loops', label: 'Revenue Loops' },
       { key: 'forecast-engine', label: 'Forecasts' },
       { key: 'marketing', label: 'Marketing' },
+      { key: 'traffic', label: 'Traffic Pulse' },
       { key: 'subscribers', label: 'Subscribers' },
       { key: 'web3-department', label: 'Web3' },
     ]
@@ -500,15 +504,9 @@ const renderBlackboxShadowLog = () => (
 );
 
 const renderAgents = () => (
-  <div className="panel-stack">
-    <div className="command-panel">
-      <AgentsPanel />
-    </div>
-    <div className="command-panel">
+  <div className="panel-stack" style={{ height: '100%' }}>
+    <div className="command-panel command-panel--full" style={{ height: '100%' }}>
       <AgentManager />
-    </div>
-    <div className="command-panel">
-      <OperationsPulse compact />
     </div>
   </div>
 );
@@ -539,7 +537,7 @@ const renderWorkflows = () => (
 const renderIntelligence = () => (
   <div className="panel-stack">
     <div className="command-panel command-panel--visual">
-      <Office3DView />
+      <CommandRoom />
     </div>
     <div className="command-panel">
       <EvolutionView />
@@ -618,10 +616,26 @@ const renderMarketing = () => (
   </div>
 );
 
+const renderTraffic = () => (
+  <div className="panel-stack">
+    <div className="command-panel">
+      <TrafficPulsePanel />
+    </div>
+  </div>
+);
+
 const renderSubscribers = () => (
   <div className="panel-stack">
     <div className="command-panel">
       <SubscribersPanel />
+    </div>
+  </div>
+);
+
+const renderRevenueLoops = () => (
+  <div className="panel-stack">
+    <div className="command-panel command-panel--full">
+      <RevenueLoopsPanel />
     </div>
   </div>
 );
@@ -725,7 +739,9 @@ export const CommandCenter: React.FC = () => {
       { key: 'security', label: 'Security', render: renderSecurity },
       { key: 'leads', label: 'Leads', render: renderLeads },
       { key: 'marketing', label: 'Marketing', render: renderMarketing },
+      { key: 'traffic', label: 'Traffic Pulse', render: renderTraffic },
       { key: 'subscribers', label: 'Subscribers', render: renderSubscribers },
+      { key: 'revenue-loops', label: 'Revenue Loops', render: renderRevenueLoops },
       { key: 'head-office', label: 'Head Office', render: renderHeadOffice },
     ],
     []

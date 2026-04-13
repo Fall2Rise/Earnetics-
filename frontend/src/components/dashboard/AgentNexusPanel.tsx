@@ -8,7 +8,7 @@ const statusTone: Record<string, string> = {
   offline: 'text-slate-500',
 };
 
-export const AgentNexusPanel: React.FC = () => {
+export const AgentNexusPanel: React.FC<{ onSelectAgent?: (agent: any) => void }> = ({ onSelectAgent }) => {
   const { agents, loading, error, fetchAgents, connectWebSocket } = useAgentStore();
 
   React.useEffect(() => {
@@ -33,7 +33,11 @@ export const AgentNexusPanel: React.FC = () => {
 
       <div className="mt-6 grid gap-3 md:grid-cols-2">
         {agents.map((agent) => (
-          <div key={agent.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div 
+            key={agent.id} 
+            className="rounded-2xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:border-cyan-500/30 hover:bg-white/10 transition-all"
+            onClick={() => onSelectAgent?.(agent)}
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h4 className="text-base text-white">{agent.name}</h4>

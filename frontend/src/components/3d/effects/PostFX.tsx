@@ -96,34 +96,27 @@ export const PostFX: React.FC = () => {
 
   return (
     <EffectComposer multisampling={0} disableNormalPass>
-      {/* Bloom effect - subtle glow */}
+      {/* Bloom effect - "TRON" sci-fi glow */}
       {debug.showBloom ? (
         <Bloom
-          intensity={1.0} // Reduced from 1.5
-          luminanceThreshold={0.65} // Slightly higher threshold
+          intensity={2.0} // Boosted for sci-fi look
+          luminanceThreshold={0.4} // Lower threshold to catch more neon
           luminanceSmoothing={0.9}
           height={300}
           mipmapBlur // smoother bloom
         />
       ) : <></>}
 
-      {/* Chromatic Aberration - DRASTICALLY REDUCED */}
+      {/* Chromatic Aberration - Cyberpunk fringe */}
       {debug.showChromaticAberration ? (
         <ChromaticAberration
-          offset={[0.0002, 0.0002] as any} // Reduced by 10x (was 0.002)
-          radialModulation={false}
+          offset={[0.0015, 0.0015] as any} // Slight boost for holographic feel
+          radialModulation={true}
           modulationOffset={0}
         />
       ) : <></>}
 
-      {/* Film Grain - Reduced */}
-      {debug.showNoise ? (
-        <Noise
-          premultiply
-          blendFunction={BlendFunction.OVERLAY}
-          opacity={0.02} // Reduced from 0.05
-        />
-      ) : <></>}
+      {/* Film Grain - DISABLED */}\n      {/* {debug.showNoise ? (\n        <Noise\n          premultiply\n          blendFunction={BlendFunction.OVERLAY}\n          opacity={0.02}\n        />\n      ) : <></>} */}
 
       {/* Vignette - Reduced */}
       {debug.showVignette ? (

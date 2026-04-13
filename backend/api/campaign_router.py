@@ -1,51 +1,38 @@
-"""Email Campaign Management Router"""
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
+from typing import List, Optional, Dict
 from pydantic import BaseModel
-from backend.services.mailops_service import MailOpsService, Subscriber
+from backend.services.campaign_service import campaign_service
 
-router = APIRouter(prefix="/api/mailops", tags=["mailops"])
-service = MailOpsService()
+router = APIRouter(prefix="/api/campaigns", tags=["campaigns"])
 
-class SubscriberRequest(BaseModel):
-    email: str
-    first_name: Optional[str] = None
-    tags: List[str] = []
-    source: Optional[str] = "api"
+class CampaignCreate(BaseModel):
+    name: str
+    type: str = "email"
+    content_asset_id: Optional[int] = None
+    target_filter: Optional[Dict] = {}
+    schedule_at: Optional[str] = None
 
-class CampaignRequest(BaseModel):
-    subject: str
-    body: str
-    target_segment: Dict[str, Any] = {}
+@router.get("/")
+def list_campaigns(status: Optional[str] = None, limit: int = 50):
+    return {"campaigns": campaign_service.list_campaigns(status, limit)}
 
-@router.post("/subscribers")
-def add_subscriber(req: SubscriberRequest):
-    sub = Subscriber(
-        email=req.email,
-        first_name=req.first_name,
-        tags=req.tags,
-        source=req.source
+@router.post("/")
+def create_campaign(campaign: CampaignCreate):
+    return campaign_service.create_campaign(
+        campaign.name, 
+        campaign.type, 
+        campaign.content_asset_id, 
+        campaign.target_filter, 
+        campaign.schedule_at
     )
-    return service.add_subscriber(sub)
 
-@router.get("/subscribers")
-def list_subscribers(limit: int = 50):
-    return {"subscribers": service.list_subscribers(limit)}
+@router.post("/{campaign_id}/start")
+def start_campaign(campaign_id: int):
+    # In a real system, this would trigger the CampaignRunner worker
+    campaign_service.update_status(campaign_id, "active")
+    return {"status": "started", "id": campaign_id}
 
-@router.post("/campaigns")
-def create_campaign(req: CampaignRequest):
-    return service.create_campaign(req.subject, req.body, req.target_segment)
-
-@router.post("/campaigns/{campaign_id}/send")
-def send_campaign(campaign_id: int):
-    try:
-        return service.send_campaign(campaign_id)
-    except RuntimeError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.get("/campaigns")
-def list_campaigns(limit: int = 20):
-    return {"campaigns": service.list_campaigns(limit)}
-
+@router.post("/{campaign_id}/pause")
+def pause_campaign(campaign_id: int):
+    campaign_service.update_status(campaign_id, "paused")
+    return {"status": "paused", "id": campaign_id}

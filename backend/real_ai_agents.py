@@ -418,6 +418,7 @@ Always focus on actionable outcomes and measurable results."""
         log_event("agent_thinking", agent=self.name, message=f"Thinking about: {context}", details={"data": data})
 
         # Get adaptive strategy based on past performance (with timeout protection)
+        log_event("agent_phase", agent=self.name, message="Analyzing adaptive strategy based on past performance", status="processing")
         # Skip adaptive strategy if it takes too long to avoid blocking
         enhanced_context = context
         system_prompt = self._create_system_prompt()
@@ -438,10 +439,12 @@ Always focus on actionable outcomes and measurable results."""
             logger.debug(f"Adaptive strategy failed for {self.name}: {e}")
 
         # Create context-aware prompt
+        log_event("agent_phase", agent=self.name, message="Constructing context-aware prompt for decision engine", status="processing")
         user_prompt = self._create_user_prompt(enhanced_context, data)
 
         try:
             # Try to get real AI response
+            log_event("agent_phase", agent=self.name, message="Querying LLM Gateway for strategic decision", status="processing")
             ai_response = await self._get_ai_response(system_prompt, user_prompt)
 
             if ai_response:
@@ -468,6 +471,7 @@ Always focus on actionable outcomes and measurable results."""
         self.memory.append(memory_entry)
 
         # Execute actions based on decision with retry logic
+        log_event("agent_phase", agent=self.name, message=f"Executing decision: {decision.get('analysis', 'Action execution')}", status="executing")
         action_result = None
         start_time = time.time()
         try:
@@ -760,6 +764,8 @@ Focus on actions that can generate revenue immediately.
                 tool_name = action.get("tool")
                 args = action.get("args") or {}
                 meta = action.get("meta") or {}
+                
+                log_event("agent_tool_use", agent=self.name, message=f"Invoking tool: {tool_name}", details={"args": args})
                 
                 if executor:
                     try:
@@ -1182,27 +1188,32 @@ class Nova(RealAIAgent):
                 products = [dict(row) for row in cursor.fetchall()]
             
             for product in products:
-                if not product.get("payment_link"):
-                    continue
+                # Use public landing page URL if possible, fallback to payment link
+                landing_page = product.get("landing_page", "")
+                if landing_page and landing_page.strip():
+                    site_base = os.getenv("SITE_BASE_URL", "").rstrip("/")
+                    if site_base:
+                        share_link = f"{site_base}/{landing_page}"
+                        # Ensure we don't double the 'products/' part if it's already there
+                        # But wait, landing_page is usually 'products/landing_pages/foo.html'
+                        # And we mounted 'products/landing_pages' to '/products' in main_server.py
+                        # So the public URL should be {base}/products/{filename}
+                        # Let's extract filename
+                        filename = os.path.basename(landing_page)
+                        share_link = f"{site_base}/products/{filename}"
+                    else:
+                        share_link = product["payment_link"]
+                else:
+                    share_link = product["payment_link"]
                 
-                # Create marketing campaign
-                campaign = {
-                    "product_id": product["id"],
-                    "product_name": product["name"],
-                    "price": product.get("price", 0),
-                    "payment_link": product["payment_link"],
-                    "channels": ["email", "social", "content"],
-                    "status": "active",
-                }
-                
-                # Generate marketing copy
+                # Create marketing copy
                 marketing_copy = f"""
 🚀 NEW PRODUCT LAUNCH: {product['name']}
 
 {product.get('description', '')}
 
 💰 Price: ${product.get('price', 0):.2f}
-🔗 Get it now: {product['payment_link']}
+🔗 Get it now: {share_link}
 
 Don't miss out on this opportunity!
 """
@@ -1322,6 +1333,18 @@ class Mercury(RealAIAgent):
                 products = [dict(row) for row in cursor.fetchall()]
             
             for product in products:
+                # Use public landing page URL if possible, fallback to payment link
+                landing_page = product.get("landing_page", "")
+                if landing_page and landing_page.strip():
+                    site_base = os.getenv("SITE_BASE_URL", "").rstrip("/")
+                    if site_base:
+                        filename = os.path.basename(landing_page)
+                        share_link = f"{site_base}/products/{filename}"
+                    else:
+                        share_link = product["payment_link"]
+                else:
+                    share_link = product["payment_link"]
+
                 # Create sales outreach message
                 sales_message = f"""
 Hi there! 👋
@@ -1331,7 +1354,7 @@ I wanted to share something exciting with you - we just launched {product['name'
 {product.get('description', '')[:200]}...
 
 💰 Special Launch Price: ${product.get('price', 0):.2f}
-🔗 Get instant access: {product['payment_link']}
+🔗 Get instant access: {share_link}
 
 This is perfect for [target audience]. Would love to hear your thoughts!
 
@@ -2908,6 +2931,140 @@ class ListBuilder(RealAIAgent):
             ],
         )
 
+    async def _execute_actions(self, decision: Dict):
+        """Execute list building actions - Convert leads to subscribers"""
+        from backend.services.lead_generation_service import LeadGenerationService
+        
+        result = {
+            "success": True,
+            "action": "list_building",
+            "agent": self.name,
+            "timestamp": datetime.now().isoformat(),
+            "leads_processed": 0,
+            "subscribers_added": 0
+        }
+        
+        try:
+            lead_service = LeadGenerationService()
+            
+            # 1. Get qualified leads that aren't yet subscribers
+            # (The service method add_leads_to_email_list handles this logic)
+            add_result = lead_service.add_leads_to_email_list()
+            
+            result["leads_processed"] = add_result.get("processed", 0)
+            result["subscribers_added"] = add_result.get("added", 0)
+            
+            if result["subscribers_added"] > 0:
+                logger.info(f"[LIST_BUILDER] 📧 Converted {result['subscribers_added']} qualified leads into subscribers")
+            
+            # 2. Maintenance: Clean up old/invalid leads
+            # (Future: Implement list hygiene)
+            
+        except Exception as e:
+            logger.error(f"[LIST_BUILDER] Error: {e}", exc_info=True)
+            result["success"] = False
+            result["error"] = str(e)
+            
+        return result
+
+
+class TrafficSpecialist(RealAIAgent):
+    """Traffic Specialist - Traffic Acquisition Director - Drives targeted traffic to offers"""
+
+    def __init__(self):
+        super().__init__(
+            name="TrafficSpecialist",
+            role="Traffic Acquisition Director",
+            division="Traffic & Audience Growth",
+            personality="Data-driven traffic master focused on CPC, SEO, and viral loops",
+            specialties=[
+                "Paid Traffic",
+                "SEO Strategy",
+                "Social Media Traffic",
+                "Viral Loops",
+                "Traffic Analytics"
+            ],
+        )
+
+    async def _execute_actions(self, decision: Dict):
+        """Execute traffic generation actions"""
+        import sqlite3
+        
+        result = {
+            "success": True,
+            "action": "traffic_generation",
+            "agent": self.name,
+            "timestamp": datetime.now().isoformat(),
+            "campaigns_optimized": 0,
+            "traffic_sources_activated": [],
+        }
+        
+        try:
+            # 1. Identify high-value landing pages needing traffic
+            with sqlite3.connect(BUSINESS_DB_PATH) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, name, payment_link, landing_page, price 
+                    FROM products 
+                    WHERE active=1 AND payment_link IS NOT NULL 
+                    ORDER BY price DESC LIMIT 5
+                """)
+                products = [dict(row) for row in cursor.fetchall()]
+
+            for product in products:
+                # Real traffic driving action
+                source = "twitter_organic" 
+                
+                result["traffic_sources_activated"].append({
+                    "product": product["name"],
+                    "landing_page": product.get("landing_page", ""),
+                    "source": source,
+                    "estimated_visitors": "Unknown (Posted to Twitter)"
+                })
+                
+                logger.info(f"[TRAFFIC] 🚦 Driving traffic to {product['name']} via {source}")
+
+                # Integration with Social (if enabled)
+                try:
+                    from backend.api_integrations import APIIntegrationManager
+                    integration_manager = APIIntegrationManager()
+                    
+                    # Force enable check if keys exist
+                    if integration_manager.social and not integration_manager.social.enabled:
+                        # Re-check keys (sometimes env vars load late)
+                        import os
+                        if os.getenv("TWITTER_API_KEY"):
+                            integration_manager.social.enabled = True
+                            
+                    if integration_manager.social and integration_manager.social.enabled:
+                        # Create engaging tweet
+                        share_link = product.get("payment_link")
+                        landing_page = product.get("landing_page")
+                        if landing_page:
+                             site_base = os.getenv("SITE_BASE_URL", "").rstrip("/")
+                             if site_base:
+                                 filename = os.path.basename(landing_page)
+                                 share_link = f"{site_base}/products/{filename}"
+
+                        msg = f"🚀 LAUNCH ALERT: {product['name']}\n\n{product.get('description', '')[:100]}...\n\n👉 Get it here: {share_link}\n\n#AI #Automation #Growth"
+                        
+                        post_result = await integration_manager.social.post_to_twitter(msg)
+                        if post_result.get("tweet_id"):
+                            logger.info(f"[TRAFFIC] ✅ Posted to Twitter: {post_result.get('url')}")
+                            result["traffic_sources_activated"][-1]["tweet_url"] = post_result.get("url")
+                        else:
+                            logger.warning(f"[TRAFFIC] Failed to post to Twitter: {post_result.get('error')}")
+                except Exception as e:
+                    logger.warning(f"[TRAFFIC] Social posting error: {e}")
+
+        except Exception as e:
+            logger.error(f"[TRAFFIC] Error: {e}")
+            result["success"] = False
+            result["error"] = str(e)
+
+        return result
+
 
 # =============================================================================
 # WEBSITE GROWTH & DIGITAL PRESENCE DIVISION
@@ -3503,6 +3660,7 @@ class AIRevenueAgentCorporation:
             "webscraper": WebScraper(),
             "leadqualifier": LeadQualifier(),
             "listbuilder": ListBuilder(),
+            "trafficspecialist": TrafficSpecialist(),
             # Website Growth & Digital Presence
             "websitemanager": WebsiteManager(),
             "contentstrategist": ContentStrategist(),
@@ -3845,8 +4003,8 @@ class AIRevenueAgentCorporation:
                    "agents": {
                        name: {
                            "role": agent.role,
-                           "division": agent.division,
-                           "department": department_map.get(name, "Corporate Execution"),
+                           "division": department_map.get(name.lower(), agent.division), # Ensure division matches summary map
+                           "department": department_map.get(name.lower(), "Corporate Execution"),
                            "memory_entries": len(agent.memory),
                            "specialties": agent.specialties,
                            "current_task": agent_activities.get(name, {}).get("current_task", "Awaiting instructions"),

@@ -33,12 +33,12 @@ head_research:
   allow_delegation: true
   verbose: true
 
-trend_hunter:
-  role: "Trend Hunter"
-  goal: "Scan socials and web for rising topics and products."
-  tools: ["web_search", "scrape_website"]
-  allow_delegation: false
-  verbose: true
+    trend_hunter:
+      role: "Trend Hunter"
+      goal: "Scan socials and web for rising topics and products."
+      tools: ["scrape.website", "scrape.url"]
+      allow_delegation: false
+      verbose: true
 
 keyword_analyst:
   role: "Keyword Analyst"
@@ -90,23 +90,26 @@ unit_tester:
   allow_delegation: false
   verbose: true
 
-head_sales:
-  role: "Head of Sales"
-  goal: "Turn working product into profitable offers."
-  allow_delegation: true
-  verbose: true
+    head_sales:
+      role: "Head of Sales"
+      goal: "Turn working product into profitable offers."
+      tools: ["stripe.create_product", "stripe.get_recent_payments", "crm.add_lead", "campaign.create"]
+      allow_delegation: true
+      verbose: true
 
-copywriter_agent:
-  role: "Copywriter"
-  goal: "Write landing pages, emails, and ad copy."
-  allow_delegation: false
-  verbose: true
+    copywriter_agent:
+      role: "Copywriter"
+      goal: "Write landing pages, emails, and ad copy."
+      tools: ["email.send", "content.save"]
+      allow_delegation: false
+      verbose: true
 
-social_manager:
-  role: "Social Media Manager"
-  goal: "Build an organic content calendar."
-  allow_delegation: false
-  verbose: true
+    social_manager:
+      role: "Social Media Manager"
+      goal: "Build an organic content calendar."
+      tools: ["social.post_twitter", "social.generate_content", "campaign.create"]
+      allow_delegation: false
+      verbose: true
 
 analytics_officer:
   role: "Analytics Officer"

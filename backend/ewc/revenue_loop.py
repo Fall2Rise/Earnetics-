@@ -8,6 +8,24 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
+from langchain.tools import Tool
+
+# Import tool handlers
+from backend.tools.handlers.stripe_tools import (
+    stripe_create_product,
+    stripe_get_recent_payments,
+    stripe_get_account
+)
+from backend.tools.handlers.scrape_tools import (
+    scrape_website,
+    web_scrape_url
+)
+from backend.tools.handlers.local_tools import (
+    add_lead_tool,
+    save_content_tool,
+    create_campaign_tool
+)
+from backend.api_integrations import api_manager
 
 try:
     from crewai import Agent as CrewAgent, Crew, Process, Task as CrewTask
@@ -259,12 +277,93 @@ class RevenueLoopRunner:
 
         return self._extract_outputs(step.get("outputs", []), result)
 
+        logger.debug("Built agent '%s' with config: %s", key, cfg)
+        return agent
+
+    def _resolve_tools(self, tool_names: List[str]) -> List[Any]:
+        """Map tool names from YAML to actual executable Tool objects."""
+        tools = []
+        for name in tool_names:
+            if name == "stripe.create_product":
+                tools.append(Tool(
+                    name="Create Stripe Product",
+                    func=lambda args: stripe_create_product(json.loads(args) if isinstance(args, str) else args),
+                    description="Create a product and price in Stripe. Input must be JSON string with 'name', 'price' (float), 'description'."
+                ))
+            elif name == "stripe.get_recent_payments":
+                tools.append(Tool(
+                    name="Get Recent Payments",
+                    func=lambda args: stripe_get_recent_payments({"limit": 5}),
+                    description="Get list of recent payments from Stripe."
+                ))
+            elif name == "scrape.website":
+                tools.append(Tool(
+                    name="Scrape Website",
+                    func=lambda args: scrape_website({"url": args}),
+                    description="Scrape text content from a website URL."
+                ))
+            elif name == "scrape.url":
+                tools.append(Tool(
+                    name="Scrape URL",
+                    func=lambda args: web_scrape_url({"url": args}),
+                    description="Fetch single page content from a URL."
+                ))
+            elif name == "email.send":
+                # Real email sending via API Manager
+                tools.append(Tool(
+                    name="Send Email",
+                    func=lambda args: api_manager.email.send_promotional_email(
+                        recipients=[args.get('to')] if isinstance(args, dict) and 'to' in args else [args] if isinstance(args, str) else [],
+                        subject=args.get('subject', 'Update from Earnetics') if isinstance(args, dict) else "Update",
+                        content=args.get('content', args) if isinstance(args, dict) else args
+                    ),
+                    description="Send an email. Input should be a JSON string with 'to', 'subject', and 'content'."
+                ))
+            elif name == "crm.add_lead":
+                tools.append(Tool(
+                    name="Add Lead",
+                    func=lambda args: add_lead_tool(json.loads(args) if isinstance(args, str) else args),
+                    description="Save a lead to database. Input JSON: {'email': '...', 'name': '...'}"
+                ))
+            elif name == "content.save":
+                tools.append(Tool(
+                    name="Save Content",
+                    func=lambda args: save_content_tool(json.loads(args) if isinstance(args, str) else args),
+                    description="Save generated text/copy. Input JSON: {'title': '...', 'content': '...'}"
+                ))
+            elif name == "campaign.create":
+                tools.append(Tool(
+                    name="Create Campaign",
+                    func=lambda args: create_campaign_tool(json.loads(args) if isinstance(args, str) else args),
+                    description="Create a marketing campaign. Input JSON: {'name': '...', 'type': 'email|social'}"
+                ))
+            elif name == "social.post_twitter":
+                # Real Twitter/X posting via API Manager
+                tools.append(Tool(
+                    name="Post to Twitter",
+                    func=lambda args: api_manager.social.post_to_twitter(args),
+                    description="Post a tweet to Twitter/X. Argument is the text content."
+                ))
+            elif name == "social.generate_content":
+                # Helper for generating posts
+                tools.append(Tool(
+                    name="Generate Social Content",
+                    func=lambda args: api_manager.social.generate_social_content(args, "twitter"),
+                    description="Generate viral social media posts for a product name."
+                ))
+            else:
+                logger.warning(f"Tool '{name}' not found in registry.")
+        return tools
+
     def _build_agent(self, key: str) -> CrewAgent:
         """Instantiate a CrewAI agent from agents.yaml configuration."""
         if key not in self.agents_cfg:
             raise KeyError(f"Agent '{key}' not found in agents.yaml.")
 
         cfg = self.agents_cfg[key]
+        
+        # Resolve tools
+        agent_tools = self._resolve_tools(cfg.get("tools", []))
 
         # Note: LLM configuration is handled globally by CrewAI via env vars.
         # We keep the agent focused on role/goal/backstory and delegation flags.
@@ -275,6 +374,7 @@ class RevenueLoopRunner:
             backstory=cfg.get("backstory", ""),
             verbose=cfg.get("verbose", False),
             allow_delegation=cfg.get("allow_delegation", False),
+            tools=agent_tools
         )
 
         logger.debug("Built agent '%s' with config: %s", key, cfg)

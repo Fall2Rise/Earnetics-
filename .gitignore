@@ -12,6 +12,11 @@
 !.env.sample
 !.env.template
 
+# explicit local credential files
+backend/api_keys.json
+backend/fallat-crewai-*.json
+config/ga4-service-account.json
+
 secrets/
 **/secrets/
 

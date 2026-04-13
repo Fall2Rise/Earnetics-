@@ -1,12 +1,13 @@
 import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { Html, Grid, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 // XR imports removed - causing WebGL context creation issues
 // import { XR, createXRStore } from '@react-three/xr';
 import { ExecutiveBridge } from './ExecutiveBridge';
 import { DepartmentZoneNew } from './DepartmentZoneNew';
 import { HolographicPanel } from './HolographicPanel';
-import { ParticleBackground } from './ParticleBackground';
+// // import { ParticleBackground } from './ParticleBackground';
 import { ConnectionLines } from './ConnectionLines';
 import { DataStream } from './DataStream';
 import { ActivityBurst } from './ActivityBurst';
@@ -15,12 +16,12 @@ import { WorkflowTrail } from './WorkflowTrail';
 import { SceneLighting } from './effects/SceneLighting';
 import { PostFX } from './effects/PostFX';
 import { CameraRig, CameraRigRef } from './effects/CameraRig';
-import { CommandDeckShell } from './environment/CommandDeckShell';
-import { StarBackdrop } from './environment/StarBackdrop';
-import { useAgentStore, Agent } from '../../stores/agentStore';
+import { Grid, Environment } from '@react-three/drei';
 import { TopDashboard } from './TopDashboard';
 import { AgentInspector } from './AgentInspector';
 import { EventLog } from './EventLog';
+import { ObsidianVault } from './ObsidianVault';
+import { KnowledgeVaultModal } from '../dashboard/KnowledgeVaultModal';
 import { fetchPendingWorkflows, WorkflowTask } from '../../api/workflowsApi';
 import { fetchSystemStatus, SystemStatusResponse } from '../../api/systemStatusApi';
 
@@ -136,7 +137,7 @@ const DEFAULT_DEBUG_FLAGS: DebugFlags = {
     environment: true,
     starBackdrop: true,
     lighting: true,
-    particles: true,
+    particles: false,
     connectionLines: true,
     dataStreams: true,
     workflows: true,
@@ -145,11 +146,12 @@ const DEFAULT_DEBUG_FLAGS: DebugFlags = {
     zones: true,
     holograms: true,
     executiveBridge: true,
-    postFX: true,
+    postFX: true, // ENSURE THIS IS TRUE
 };
 
 const Scene: React.FC<{ cameraRigRef?: React.RefObject<CameraRigRef>; vrEnabled?: boolean; debugFlags?: DebugFlags; quality?: 'low' | 'high' }> = ({ cameraRigRef, vrEnabled = false, debugFlags, quality = 'low' }) => {
     const { selectedAgent, selectAgent, selectedDepartment, selectDepartment, getAgentsByDepartment, agents } = useAgentStore();
+    const [showVault, setShowVault] = React.useState(false);
     const [recentActivity, setRecentActivity] = React.useState<Array<{ agent: string; position: [number, number, number]; color: string; time: number }>>([]);
     const [workflowTasks, setWorkflowTasks] = React.useState<WorkflowTask[]>([]);
     const [systemStatus, setSystemStatus] = React.useState<SystemStatusResponse | null>(null);
@@ -357,13 +359,36 @@ const Scene: React.FC<{ cameraRigRef?: React.RefObject<CameraRigRef>; vrEnabled?
     return (
         <>
             {/* Environment shell (does not affect agent positions) */}
-            {flags.environment && <CommandDeckShell showGrid={true} />}
-            {flags.starBackdrop && <StarBackdrop enabled={true} />}
+            {flags.environment && (
+                <>
+                    <CommandDeckShell showGrid={false} />
+                    {/* Add Industrial Grid Floor */}
+                    <Grid 
+                        position={[0, -0.1, 0]} 
+                        args={[150, 150]} 
+                        cellSize={2} 
+                        cellThickness={0.5} 
+                        cellColor="#1a1a1a" 
+                        sectionSize={10} 
+                        sectionThickness={1} 
+                        sectionColor="#333333" 
+                        fadeDistance={60} 
+                        fadeStrength={1}
+                        infiniteGrid
+                    />
+                    <Environment preset="city" />
+                    <fog attach="fog" args={['#050505', 20, 90]} />
+                    <color attach="background" args={['#050505']} />
+                </>
+            )}
+            
+            {/* StarBackdrop REMOVED - User requested "Factory" not "Space" */}
+            {/* {flags.starBackdrop && <StarBackdrop enabled={true} />} */}
 
             {/* Cinematic lighting setup */}
             {flags.lighting && <SceneLighting quality={quality} />}
 
-            {flags.particles && <ParticleBackground />}
+            {/* {flags.particles && <ParticleBackground />} */}
 
             {/* Connection lines between agents and departments */}
             {flags.connectionLines && <ConnectionLines agents={renderAgents} departments={DEPARTMENT_ZONES} />}
@@ -473,6 +498,21 @@ const Scene: React.FC<{ cameraRigRef?: React.RefObject<CameraRigRef>; vrEnabled?
                         selectedAgentRender.position[2]
                     ]}
                 />
+            )}
+
+            {/* Floating Obsidian Knowledge Vault */}
+            <ObsidianVault 
+                position={[0, 16, 0]} 
+                onClick={() => setShowVault(true)}
+            />
+
+            {/* Knowledge Vault Modal Overlay */}
+            {showVault && (
+                <Html position={[0, 0, 0]} fullscreen style={{ pointerEvents: 'none', zIndex: 100 }}>
+                    <div style={{ pointerEvents: 'auto', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <KnowledgeVaultModal onClose={() => setShowVault(false)} />
+                    </div>
+                </Html>
             )}
 
             {/* Camera rig and post-processing only in non-VR mode */}
