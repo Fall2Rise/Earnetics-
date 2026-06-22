@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from backend.core.approvals_store import ApprovalsStore
 from backend.core.governance import build_policies
